@@ -1,0 +1,6 @@
+기록시각,탭,순위,제목,titleId,작가
+2026-07-23 22:18,전체,1,김부장,783053,"{'writers': [{'id': 351540, 'name': '박만사'}, {'id': 364997, 'name': '남자의 이야기'}], 'painters': [{'id': 300655, 'name': '정종택', 'blogUrl': 'https://blog.naver.com/jongjt0302'}], 'originAuthors': []}"
+2026-07-23 22:18,전체,2,외모지상주의,641253,"{'writers': [{'id': 283063, 'name': '박태준', 'blogUrl': 'https://blog.naver.com/thesooha'}], 'painters': [{'id': 283063, 'name': '박태준', 'blogUrl': 'https://blog.naver.com/thesooha'}], 'originAuthors': []}"
+2026-07-23 22:18,전체,3,부활소년,848075,"{'writers': [{'id': 326532, 'name': '류', 'blogUrl': 'https://blog.naver.com/gyeonghun0617'}], 'painters': [{'id': 326532, 'name': '류', 'blogUrl': 'https://blog.naver.com/gyeonghun0617'}], 'originAuthors': []}"
+2026-07-23 22:18,전체,4,화산귀환,769209,"{'writers': [{'id': 406909, 'name': 'ARCHE'}, {'id': 322253, 'name': 'LICO'}], 'painters': [{'id': 406909, 'name': 'ARCHE'}, {'id': 322253, 'name': 'LICO'}], 'originAuthors': [{'id': 344545, 'name': '비가'}]}"
+2026-07-23 22:18,전체,5,나노마신,747271,"{'writers': [{'id': 334605, 'name': '현절무'}], 'painters': [{'id': 334606, 'name': '금강불괴'}], 'originAuthors': [{'id': 347598, 'name': '한중월야'}]}"
