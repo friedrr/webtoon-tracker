@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-네이버 웹툰 관심수 수집 스크립트 (다중 작품)
+네이버 웹툰 관심수 수집 스크립트 (다중 작품, 정각 수집)
 - titles.txt 에 적힌 모든 작품의 관심수를 data/<titleId>.csv 에 기록합니다.
+- 예약 실행 시: 다음 정각(:00)까지 기다렸다가 수집 → 기록 간격이 균일해짐.
+- 수동 실행 시: 기다리지 않고 즉시 수집 (테스트용).
 - 외부 패키지 없이 표준 라이브러리만 사용합니다.
 """
 
 import csv
 import json
+import os
 import re
 import sys
+import time
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
@@ -120,6 +124,52 @@ def fetch_favorite_count(title_id: str):
     raise RuntimeError(" / ".join(errors))
 
 
+def seconds_until_next_hour(now: datetime) -> float:
+    """다음 정각(:00:00)까지 남은 초. 이미 정각이면 0."""
+    remainder = (now.minute * 60 + now.second + now.microsecond / 1e6)
+    if remainder == 0:
+        return 0.0
+    return 3600.0 - remainder
+
+
+def wait_for_top_of_hour():
+    """
+    예약 실행일 때만 다음 정각까지 대기.
+    - 워크플로는 매시 :30에 예약되어 있고, GitHub이 최대 30분 늦게 깨워도
+      여기서 정각까지 기다렸다가 수집하므로 기록 시각이 균일해진다.
+    - 30분 넘게 밀려 이미 정각을 지나 시작됐다면(분 < 30) 기다리지 않고
+      즉시 수집한다. 살짝 늦은 기록이 빠진 기록보다 낫기 때문.
+    - 수동 실행(workflow_dispatch)은 테스트 목적이므로 기다리지 않는다.
+    """
+    event = os.environ.get("GITHUB_EVENT_NAME", "")
+    if event != "schedule":
+        print(f"[WAIT] 예약 실행이 아니므로({event or '로컬'}) 즉시 수집")
+        return
+    now = datetime.now(timezone.utc)
+    if now.minute < 30:
+        print(f"[WAIT] 정각을 이미 지나 시작됨({now:%H:%M UTC}) → 즉시 수집")
+        return
+    secs = seconds_until_next_hour(now)
+    print(f"[WAIT] {now:%H:%M:%S UTC} 시작 → 정각까지 {secs/60:.1f}분 대기")
+    time.sleep(secs)
+
+
+def already_recorded_this_hour(title_id: str, now: datetime) -> bool:
+    """같은 시간대(UTC 기준 시각의 '시')에 이미 기록이 있으면 True (중복 방지)."""
+    path = DATA_DIR / f"{title_id}.csv"
+    if not path.exists():
+        return False
+    try:
+        last = path.read_text(encoding="utf-8").rstrip().splitlines()[-1]
+        ts = last.split(",", 1)[0]
+        prev = datetime.fromisoformat(ts)
+        return (prev.year, prev.month, prev.day, prev.hour) == (
+            now.year, now.month, now.day, now.hour
+        )
+    except Exception:
+        return False
+
+
 def migrate_legacy():
     """예전 단일 작품 시절의 data/history.csv 를 data/851689.csv 로 이동."""
     legacy = DATA_DIR / "history.csv"
@@ -143,6 +193,8 @@ def main():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     migrate_legacy()
 
+    wait_for_top_of_hour()
+
     title_ids = load_title_ids()
     now = datetime.now(timezone.utc).replace(microsecond=0)
 
@@ -157,6 +209,10 @@ def main():
     ok, failed = [], []
     for tid in title_ids:
         try:
+            if already_recorded_this_hour(tid, now):
+                print(f"[SKIP] {tid}  이 시간대 기록이 이미 있음 (중복 방지)")
+                ok.append(tid)
+                continue
             fav, name = fetch_favorite_count(tid)
             append_record(tid, now, fav)
             prev = titles_meta.get(tid, {})
