@@ -132,26 +132,35 @@ def seconds_until_next_hour(now: datetime) -> float:
     return 3600.0 - remainder
 
 
-def wait_for_top_of_hour():
+def wait_or_yield(title_ids) -> bool:
     """
-    예약 실행일 때만 다음 정각까지 대기.
-    - 워크플로는 매시 :30에 예약되어 있고, GitHub이 최대 30분 늦게 깨워도
-      여기서 정각까지 기다렸다가 수집하므로 기록 시각이 균일해진다.
-    - 30분 넘게 밀려 이미 정각을 지나 시작됐다면(분 < 30) 기다리지 않고
-      즉시 수집한다. 살짝 늦은 기록이 빠진 기록보다 낫기 때문.
-    - 수동 실행(workflow_dispatch)은 테스트 목적이므로 기다리지 않는다.
+    예약 실행의 행동 결정. 수집을 진행해야 하면 True, 물러나야 하면 False.
+
+    예약은 매시 :35, :45, :55 세 번 걸려 있고 규칙은 다음과 같다.
+    - 분 >= 30 에 시작: 정상 도착 → 다음 정각까지 대기 후 수집.
+    - 분 < 30 에 시작(지연으로 정각을 넘김):
+        * 이번 시간대 기록이 이미 있으면 → 다른 실행이 처리했으므로 종료.
+        * 없으면 → 늦었지만 즉시 수집(빠진 기록보다 늦은 기록이 낫다).
+    - 수동 실행(workflow_dispatch)은 테스트 목적이므로 즉시 수집.
     """
     event = os.environ.get("GITHUB_EVENT_NAME", "")
     if event != "schedule":
         print(f"[WAIT] 예약 실행이 아니므로({event or '로컬'}) 즉시 수집")
-        return
+        return True
+
     now = datetime.now(timezone.utc)
-    if now.minute < 30:
-        print(f"[WAIT] 정각을 이미 지나 시작됨({now:%H:%M UTC}) → 즉시 수집")
-        return
-    secs = seconds_until_next_hour(now)
-    print(f"[WAIT] {now:%H:%M:%S UTC} 시작 → 정각까지 {secs/60:.1f}분 대기")
-    time.sleep(secs)
+    if now.minute >= 30:
+        secs = seconds_until_next_hour(now)
+        print(f"[WAIT] {now:%H:%M:%S UTC} 시작 → 정각까지 {secs/60:.1f}분 대기")
+        time.sleep(secs)
+        return True
+
+    if all(already_recorded_this_hour(t, now) for t in title_ids):
+        print(f"[YIELD] {now:%H:%M UTC} — 이번 시간대는 이미 기록됨, 종료")
+        return False
+
+    print(f"[WAIT] 정각을 지나 시작됨({now:%H:%M UTC}) → 밀린 기록 즉시 수집")
+    return True
 
 
 def already_recorded_this_hour(title_id: str, now: datetime) -> bool:
@@ -193,9 +202,9 @@ def main():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     migrate_legacy()
 
-    wait_for_top_of_hour()
-
     title_ids = load_title_ids()
+    if not wait_or_yield(title_ids):
+        return
     now = datetime.now(timezone.utc).replace(microsecond=0)
 
     meta = {}
