@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-네이버 웹툰 관심수 수집 스크립트
-- 매시간 GitHub Actions에서 실행되어 data/history.csv 에 한 줄씩 기록합니다.
+네이버 웹툰 관심수 수집 스크립트 (다중 작품)
+- titles.txt 에 적힌 모든 작품의 관심수를 data/<titleId>.csv 에 기록합니다.
 - 외부 패키지 없이 표준 라이브러리만 사용합니다.
 """
 
@@ -13,29 +13,36 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-TITLE_ID = "851689"
-
-API_URL = f"https://comic.naver.com/api/article/list/info?titleId={TITLE_ID}"
-PAGE_URL = f"https://comic.naver.com/webtoon/list?titleId={TITLE_ID}"
-
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
-CSV_PATH = DATA_DIR / "history.csv"
 META_PATH = DATA_DIR / "meta.json"
+TITLES_PATH = BASE_DIR / "titles.txt"
+
+# titles.txt 가 없을 때 사용할 기본 목록
+DEFAULT_TITLE_IDS = ["851689"]
 
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
         "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
     ),
-    "Referer": PAGE_URL,
     "Accept": "application/json, text/html;q=0.9, */*;q=0.8",
     "Accept-Language": "ko-KR,ko;q=0.9",
 }
 
 
-def http_get(url: str) -> str:
-    req = urllib.request.Request(url, headers=HEADERS)
+def page_url(title_id: str) -> str:
+    return f"https://comic.naver.com/webtoon/list?titleId={title_id}"
+
+
+def api_url(title_id: str) -> str:
+    return f"https://comic.naver.com/api/article/list/info?titleId={title_id}"
+
+
+def http_get(url: str, referer: str) -> str:
+    headers = dict(HEADERS)
+    headers["Referer"] = referer
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=30) as resp:
         return resp.read().decode("utf-8", errors="replace")
 
@@ -57,13 +64,33 @@ def find_key(obj, key):
     return None
 
 
-def fetch_favorite_count():
+def load_title_ids():
+    """titles.txt 에서 titleId 목록을 읽음. URL을 붙여넣어도 숫자만 추출."""
+    if not TITLES_PATH.exists():
+        return list(DEFAULT_TITLE_IDS)
+    ids = []
+    for raw in TITLES_PATH.read_text(encoding="utf-8").splitlines():
+        line = raw.split("#", 1)[0].strip()  # '#' 뒤는 메모로 취급
+        if not line:
+            continue
+        m = re.search(r"titleId=(\d+)", line) or re.fullmatch(r"(\d+)", line)
+        if m:
+            tid = m.group(1)
+            if tid not in ids:
+                ids.append(tid)
+        else:
+            print(f"[SKIP] titleId를 찾을 수 없는 줄: {raw!r}", file=sys.stderr)
+    return ids or list(DEFAULT_TITLE_IDS)
+
+
+def fetch_favorite_count(title_id: str):
     """(favorite_count, title_name) 반환. 실패 시 예외."""
     errors = []
+    referer = page_url(title_id)
 
     # 1차: 공식 API 엔드포인트
     try:
-        data = json.loads(http_get(API_URL))
+        data = json.loads(http_get(api_url(title_id), referer))
         fav = find_key(data, "favoriteCount")
         name = find_key(data, "titleName")
         if fav is not None:
@@ -74,7 +101,7 @@ def fetch_favorite_count():
 
     # 2차 폴백: 작품 페이지 HTML에 포함된 JSON에서 추출
     try:
-        html = http_get(PAGE_URL)
+        html = http_get(referer, referer)
         m = re.search(r'"favoriteCount"\s*:\s*(\d+)', html)
         if m:
             fav = int(m.group(1))
@@ -90,21 +117,34 @@ def fetch_favorite_count():
     except Exception as e:
         errors.append(f"페이지 요청 실패: {e!r}")
 
-    raise RuntimeError("관심수 수집 실패 → " + " / ".join(errors))
+    raise RuntimeError(" / ".join(errors))
 
 
-def main():
-    fav, name = fetch_favorite_count()
-    now = datetime.now(timezone.utc).replace(microsecond=0)
+def migrate_legacy():
+    """예전 단일 작품 시절의 data/history.csv 를 data/851689.csv 로 이동."""
+    legacy = DATA_DIR / "history.csv"
+    target = DATA_DIR / "851689.csv"
+    if legacy.exists() and not target.exists():
+        legacy.rename(target)
+        print("[MIGRATE] history.csv -> 851689.csv")
 
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-    is_new = not CSV_PATH.exists()
-    with CSV_PATH.open("a", newline="", encoding="utf-8") as f:
+def append_record(title_id: str, when: datetime, fav: int):
+    path = DATA_DIR / f"{title_id}.csv"
+    is_new = not path.exists()
+    with path.open("a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         if is_new:
             writer.writerow(["timestamp_utc", "favorite_count"])
-        writer.writerow([now.isoformat(), fav])
+        writer.writerow([when.isoformat(), fav])
+
+
+def main():
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    migrate_legacy()
+
+    title_ids = load_title_ids()
+    now = datetime.now(timezone.utc).replace(microsecond=0)
 
     meta = {}
     if META_PATH.exists():
@@ -112,25 +152,40 @@ def main():
             meta = json.loads(META_PATH.read_text(encoding="utf-8"))
         except Exception:
             meta = {}
-    meta.update(
-        {
-            "titleId": TITLE_ID,
-            "titleName": name or meta.get("titleName"),
-            "pageUrl": PAGE_URL,
-            "updatedAtUtc": now.isoformat(),
-            "latestCount": fav,
-        }
-    )
+    titles_meta = meta.get("titles", {})
+
+    ok, failed = [], []
+    for tid in title_ids:
+        try:
+            fav, name = fetch_favorite_count(tid)
+            append_record(tid, now, fav)
+            prev = titles_meta.get(tid, {})
+            titles_meta[tid] = {
+                "titleName": name or prev.get("titleName"),
+                "pageUrl": page_url(tid),
+                "latestCount": fav,
+                "updatedAtUtc": now.isoformat(),
+            }
+            ok.append(tid)
+            print(f"[OK] {tid}  favoriteCount={fav}  title={name or '(미확인)'}")
+        except Exception as e:
+            failed.append(tid)
+            print(f"[FAIL] {tid}  {e}", file=sys.stderr)
+
+    meta = {
+        "updatedAtUtc": now.isoformat(),
+        "titleOrder": title_ids,
+        "titles": titles_meta,
+    }
     META_PATH.write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
-    print(f"[OK] {now.isoformat()}  favoriteCount={fav}  title={name or '(미확인)'}")
+    print(f"[DONE] 성공 {len(ok)}건 / 실패 {len(failed)}건")
+    # 전부 실패했을 때만 워크플로를 빨간 X로 표시
+    if ok == [] and failed:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print(f"[FAIL] {e}", file=sys.stderr)
-        sys.exit(1)
+    main()

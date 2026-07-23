@@ -35,7 +35,7 @@
   header{
     display:flex;align-items:baseline;justify-content:space-between;
     gap:12px;flex-wrap:wrap;
-    padding:28px 2px 22px;
+    padding:28px 2px 16px;
   }
   .title-block .eyebrow{
     font-size:12px;letter-spacing:.16em;color:var(--accent-deep);
@@ -46,7 +46,22 @@
     font-size:clamp(22px,4vw,30px);line-height:1.3;
   }
   .updated{font-size:13px;color:var(--muted)}
-  .updated a{color:var(--muted)}
+
+  /* 작품 전환 탭 */
+  .tabs{
+    display:flex;gap:6px;flex-wrap:wrap;
+    margin-bottom:16px;
+  }
+  .tabs button{
+    border:1px solid var(--line);background:var(--card);color:var(--muted);
+    font:inherit;font-size:14px;padding:8px 16px;border-radius:999px;cursor:pointer;
+  }
+  .tabs button:hover{border-color:var(--accent)}
+  .tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .tabs button.on{
+    background:var(--accent-deep);border-color:var(--accent-deep);
+    color:#fff;font-weight:700;
+  }
 
   /* 히어로 */
   .hero{
@@ -57,9 +72,7 @@
   .hero-label{
     font-family:"Gowun Batang",serif;font-size:15px;color:var(--muted);margin-bottom:6px;
   }
-  .hero-count{
-    display:flex;align-items:center;gap:14px;
-  }
+  .hero-count{display:flex;align-items:center;gap:14px}
   .hero-count .num{
     font-size:clamp(44px,9vw,68px);font-weight:800;letter-spacing:-.02em;
     font-variant-numeric:tabular-nums;line-height:1;
@@ -145,6 +158,8 @@
     <div class="updated" id="updatedAt"></div>
   </header>
 
+  <div class="tabs" id="tabs" role="tablist" aria-label="작품 선택"></div>
+
   <div id="empty" class="notice hidden">
     <strong>아직 수집된 데이터가 없어요</strong>
     GitHub Actions가 첫 실행을 마치면 여기에 추이가 나타납니다.<br>
@@ -210,38 +225,6 @@
   const fmt = n => n.toLocaleString("ko-KR");
   const KST = 9*3600*1000;
 
-  // ---------- 데이터 로드 ----------
-  let rows = [], meta = {};
-  try{
-    const r = await fetch("data/history.csv", {cache:"no-store"});
-    if(r.ok){
-      const text = await r.text();
-      rows = text.trim().split(/\r?\n/).slice(1)
-        .map(line=>{
-          const [t,c] = line.split(",");
-          return {t:new Date(t).getTime(), c:parseInt(c,10)};
-        })
-        .filter(d=>Number.isFinite(d.t)&&Number.isFinite(d.c))
-        .sort((a,b)=>a.t-b.t);
-    }
-  }catch(e){}
-  try{
-    const r = await fetch("data/meta.json", {cache:"no-store"});
-    if(r.ok) meta = await r.json();
-  }catch(e){}
-
-  if(meta.titleName){
-    $("titleName").textContent = meta.titleName;
-    document.title = meta.titleName + " · 관심수 추적";
-  }
-
-  if(rows.length === 0){
-    $("empty").classList.remove("hidden");
-    return;
-  }
-  $("dash").classList.remove("hidden");
-
-  // ---------- 유틸 ----------
   const kstDateKey = t => {
     const d = new Date(t + KST);
     return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-${String(d.getUTCDate()).padStart(2,"0")}`;
@@ -251,40 +234,8 @@
   const fmtHour = t => new Intl.DateTimeFormat("ko-KR",
     {timeZone:"Asia/Seoul", hour:"numeric"}).format(new Date(t));
   const signed = n => (n>0?"+":"") + fmt(n);
-
-  // ---------- 요약 수치 ----------
-  const latest = rows[rows.length-1];
-  $("currentCount").textContent = fmt(latest.c);
-  $("updatedAt").textContent = "마지막 기록 " + fmtTime(latest.t);
-  $("recordCount").innerHTML = fmt(rows.length) + " <span>회</span>";
-
-  const at = cutoff => {           // cutoff 이전 가장 가까운 기록
-    let v = null;
-    for(const r of rows){ if(r.t <= cutoff) v = r; else break; }
-    return v;
-  };
-
-  const dayStartKst = (()=>{       // 오늘 자정(KST)의 UTC ms
-    const d = new Date(latest.t + KST);
-    return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - KST;
-  })();
-  const base24 = at(latest.t - 24*3600*1000) || rows[0];
-  const baseDay = at(dayStartKst) || rows[0];
-
-  const d24 = latest.c - base24.c;
-  const dToday = latest.c - baseDay.c;
-  const spanH = Math.max((latest.t - base24.t)/3600000, 1);
-
-  $("delta24").textContent = signed(d24);
-  $("todayDelta").textContent = signed(dToday);
-  $("hourlyAvg").innerHTML = fmt(Math.round(d24/spanH)) + " <span>/시간</span>";
-
-  const chip = $("chip24");
-  chip.innerHTML = signed(d24) + " <small>지난 24시간</small>";
-  if(d24 < 0) chip.classList.add("down");
-
-  // ---------- 공통 차트 설정 ----------
   const css = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+
   Chart.defaults.font.family = '"Pretendard", sans-serif';
   Chart.defaults.color = css("--muted");
 
@@ -317,13 +268,55 @@
     }
   };
 
-  // ---------- 추이 차트 ----------
-  let trendChart = null;
-  function drawTrend(hours){
-    const cut = hours ? latest.t - hours*3600000 : 0;
+  // ---------- 메타 정보 로드 ----------
+  let meta = {};
+  try{
+    const r = await fetch("data/meta.json", {cache:"no-store"});
+    if(r.ok) meta = await r.json();
+  }catch(e){}
+
+  // 신구 형식 모두 지원: {titles:{id:{...}}} 또는 예전 단일 형식 {titleId, titleName}
+  let titles = meta.titles || {};
+  let order = meta.titleOrder || Object.keys(titles);
+  if(order.length === 0 && meta.titleId){
+    titles = {[meta.titleId]: {titleName: meta.titleName}};
+    order = [meta.titleId];
+  }
+
+  if(order.length === 0){
+    $("empty").classList.remove("hidden");
+    return;
+  }
+
+  // ---------- 작품 탭 ----------
+  const tabsEl = $("tabs");
+  if(order.length > 1){
+    for(const tid of order){
+      const b = document.createElement("button");
+      b.type = "button";
+      b.dataset.tid = tid;
+      b.setAttribute("role","tab");
+      b.textContent = (titles[tid] && titles[tid].titleName) || tid;
+      tabsEl.appendChild(b);
+    }
+    tabsEl.addEventListener("click", e=>{
+      const b = e.target.closest("button");
+      if(!b || b.classList.contains("on")) return;
+      location.hash = b.dataset.tid;
+      select(b.dataset.tid);
+    });
+  }
+
+  // ---------- 차트/표 상태 ----------
+  let trendChart = null, deltaChart = null;
+  let rows = [], latest = null, rangeH = 0;
+
+  function drawTrend(){
+    const cut = rangeH ? latest.t - rangeH*3600000 : 0;
     const data = rows.filter(r=>r.t >= cut);
     const many = data.length > 60;
-    const cfg = {
+    if(trendChart) trendChart.destroy();
+    trendChart = new Chart($("trendChart"), {
       type:"line",
       data:{
         labels:data.map(r=>fmtTime(r.t)),
@@ -350,72 +343,144 @@
         }
       },
       plugins:[dayGutter]
-    };
-    if(trendChart) trendChart.destroy();
-    trendChart = new Chart($("trendChart"), cfg);
+    });
   }
-  drawTrend(0);
 
+  function drawDelta(){
+    const deltas = [];
+    for(let i=1;i<rows.length;i++){
+      deltas.push({t:rows[i].t, d:rows[i].c - rows[i-1].c});
+    }
+    const recent = deltas.slice(-48);
+    if(deltaChart) deltaChart.destroy();
+    deltaChart = new Chart($("deltaChart"), {
+      type:"bar",
+      data:{
+        labels:recent.map(r=>fmtHour(r.t)),
+        rawTimes:recent.map(r=>r.t),
+        datasets:[{
+          data:recent.map(r=>r.d),
+          backgroundColor:recent.map(r=>r.d < 0 ? css("--warn") : css("--accent")),
+          borderRadius:3,
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{
+            title:items=>fmtTime(recent[items[0].dataIndex].t),
+            label:c=>" 증가 " + signed(c.parsed.y)
+          }}
+        },
+        scales:{
+          x:{ticks:{maxTicksLimit:12, maxRotation:0}, grid:{display:false}},
+          y:{beginAtZero:true, ticks:{callback:v=>fmt(v)}, grid:{color:css("--line")}}
+        }
+      },
+      plugins:[dayGutter]
+    });
+  }
+
+  function drawTable(){
+    const byDay = new Map();
+    for(const r of rows) byDay.set(kstDateKey(r.t), r.c);
+    const days = [...byDay.entries()];
+    const tbody = $("dailyBody");
+    tbody.innerHTML = "";
+    for(let i=days.length-1; i>=0; i--){
+      const [date, close] = days[i];
+      const prevClose = i>0 ? days[i-1][1] : null;
+      const diff = prevClose === null ? null : close - prevClose;
+      const tr = document.createElement("tr");
+      const cls = diff === null ? "" : (diff < 0 ? "down" : "up");
+      tr.innerHTML = `<td>${date.replace(/-/g,".")}</td>` +
+                     `<td>${fmt(close)}</td>` +
+                     `<td class="${cls}">${diff===null?"–":signed(diff)}</td>`;
+      tbody.appendChild(tr);
+    }
+  }
+
+  // ---------- 작품 선택 → 데이터 로드 및 렌더 ----------
+  async function select(tid){
+    document.querySelectorAll("#tabs button").forEach(b=>
+      b.classList.toggle("on", b.dataset.tid === tid));
+
+    const info = titles[tid] || {};
+    const name = info.titleName || tid;
+    $("titleName").textContent = name;
+    document.title = name + " · 관심수 추적";
+
+    rows = [];
+    try{
+      // 신규 파일명 우선, 없으면 예전 history.csv 시도
+      let r = await fetch(`data/${tid}.csv`, {cache:"no-store"});
+      if(!r.ok) r = await fetch("data/history.csv", {cache:"no-store"});
+      if(r.ok){
+        const text = await r.text();
+        rows = text.trim().split(/\r?\n/).slice(1)
+          .map(line=>{
+            const [t,c] = line.split(",");
+            return {t:new Date(t).getTime(), c:parseInt(c,10)};
+          })
+          .filter(d=>Number.isFinite(d.t)&&Number.isFinite(d.c))
+          .sort((a,b)=>a.t-b.t);
+      }
+    }catch(e){}
+
+    if(rows.length === 0){
+      $("dash").classList.add("hidden");
+      $("empty").classList.remove("hidden");
+      return;
+    }
+    $("empty").classList.add("hidden");
+    $("dash").classList.remove("hidden");
+
+    latest = rows[rows.length-1];
+    $("currentCount").textContent = fmt(latest.c);
+    $("updatedAt").textContent = "마지막 기록 " + fmtTime(latest.t);
+    $("recordCount").innerHTML = fmt(rows.length) + " <span>회</span>";
+
+    const at = cutoff => {
+      let v = null;
+      for(const r of rows){ if(r.t <= cutoff) v = r; else break; }
+      return v;
+    };
+    const d = new Date(latest.t + KST);
+    const dayStartKst = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - KST;
+    const base24 = at(latest.t - 24*3600*1000) || rows[0];
+    const baseDay = at(dayStartKst) || rows[0];
+
+    const d24 = latest.c - base24.c;
+    const dToday = latest.c - baseDay.c;
+    const spanH = Math.max((latest.t - base24.t)/3600000, 1);
+
+    $("delta24").textContent = signed(d24);
+    $("todayDelta").textContent = signed(dToday);
+    $("hourlyAvg").innerHTML = fmt(Math.round(d24/spanH)) + " <span>/시간</span>";
+
+    const chip = $("chip24");
+    chip.innerHTML = signed(d24) + " <small>지난 24시간</small>";
+    chip.classList.toggle("down", d24 < 0);
+
+    drawTrend();
+    drawDelta();
+    drawTable();
+  }
+
+  // 기간 토글
   $("rangeBtns").addEventListener("click", e=>{
     const b = e.target.closest("button");
     if(!b) return;
     document.querySelectorAll("#rangeBtns button").forEach(x=>x.classList.remove("on"));
     b.classList.add("on");
-    drawTrend(parseInt(b.dataset.h,10));
+    rangeH = parseInt(b.dataset.h,10);
+    if(latest) drawTrend();
   });
 
-  // ---------- 시간별 증가량 (최근 48개 구간) ----------
-  const deltas = [];
-  for(let i=1;i<rows.length;i++){
-    deltas.push({t:rows[i].t, d:rows[i].c - rows[i-1].c});
-  }
-  const recent = deltas.slice(-48);
-  new Chart($("deltaChart"), {
-    type:"bar",
-    data:{
-      labels:recent.map(r=>fmtHour(r.t)),
-      rawTimes:recent.map(r=>r.t),
-      datasets:[{
-        data:recent.map(r=>r.d),
-        backgroundColor:recent.map(r=>r.d < 0 ? css("--warn") : css("--accent")),
-        borderRadius:3,
-      }]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{callbacks:{
-          title:items=>fmtTime(recent[items[0].dataIndex].t),
-          label:c=>" 증가 " + signed(c.parsed.y)
-        }}
-      },
-      scales:{
-        x:{ticks:{maxTicksLimit:12, maxRotation:0}, grid:{display:false}},
-        y:{beginAtZero:true, ticks:{callback:v=>fmt(v)}, grid:{color:css("--line")}}
-      }
-    },
-    plugins:[dayGutter]
-  });
-
-  // ---------- 일별 표 ----------
-  const byDay = new Map();
-  for(const r of rows){
-    byDay.set(kstDateKey(r.t), r.c);   // 같은 날짜의 마지막 값이 남음
-  }
-  const days = [...byDay.entries()];
-  const tbody = $("dailyBody");
-  for(let i=days.length-1; i>=0; i--){
-    const [date, close] = days[i];
-    const prevClose = i>0 ? days[i-1][1] : null;
-    const diff = prevClose === null ? null : close - prevClose;
-    const tr = document.createElement("tr");
-    const cls = diff === null ? "" : (diff < 0 ? "down" : "up");
-    tr.innerHTML = `<td>${date.replace(/-/g,".")}</td>` +
-                   `<td>${fmt(close)}</td>` +
-                   `<td class="${cls}">${diff===null?"–":signed(diff)}</td>`;
-    tbody.appendChild(tr);
-  }
+  // 시작: URL 해시(#titleId)로 북마크한 작품이 있으면 그 작품부터
+  const initial = order.includes(location.hash.slice(1)) ? location.hash.slice(1) : order[0];
+  select(initial);
 })();
 </script>
 </body>
