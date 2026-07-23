@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>실시간 랭킹 추적</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#EDF2EE;
+    --card:#FFFFFF;
+    --ink:#16241D;
+    --muted:#5B6B60;
+    --accent:#069A57;
+    --accent-deep:#0B5B38;
+    --soft:#DBEFE3;
+    --line:#D5E1D8;
+    --warn:#D95B43;
+    --up:#069A57;
+    --down:#D95B43;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Pretendard",-apple-system,"Malgun Gothic",sans-serif;
+    line-height:1.55;
+    padding:0 20px 64px;
+  }
+  .wrap{max-width:880px;margin:0 auto}
+
+  header{
+    display:flex;align-items:baseline;justify-content:space-between;
+    gap:12px;flex-wrap:wrap;
+    padding:34px 2px 18px;
+  }
+  h1{
+    font-family:"Gowun Batang",serif;
+    font-size:1.55rem;font-weight:700;letter-spacing:-.01em;
+  }
+  h1 .accent{color:var(--accent-deep)}
+  .updated{font-size:.82rem;color:var(--muted)}
+  .updated b{color:var(--ink);font-weight:600}
+
+  .tabs{display:flex;gap:8px;margin-bottom:16px}
+  .tab{
+    flex:1;padding:10px 0;text-align:center;cursor:pointer;
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    font-size:.95rem;font-weight:600;color:var(--muted);
+    transition:all .15s;
+  }
+  .tab:hover{border-color:var(--accent)}
+  .tab.active{
+    background:var(--accent-deep);border-color:var(--accent-deep);color:#fff;
+  }
+
+  .card{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);padding:20px 22px;margin-bottom:16px;
+  }
+  .card h2{
+    font-size:.95rem;font-weight:700;margin-bottom:14px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .card h2::before{
+    content:"";width:8px;height:8px;border-radius:50%;
+    background:var(--accent);display:inline-block;
+  }
+
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th{
+    text-align:left;font-size:.78rem;color:var(--muted);font-weight:600;
+    padding:6px 8px;border-bottom:1px solid var(--line);
+  }
+  td{padding:9px 8px;border-bottom:1px solid var(--bg)}
+  tr:last-child td{border-bottom:none}
+  td.rank{
+    font-family:"Gowun Batang",serif;font-weight:700;font-size:1.05rem;
+    width:44px;color:var(--accent-deep);
+  }
+  td.title-cell{font-weight:600}
+  td.author{color:var(--muted);font-size:.85rem}
+  .badge{
+    display:inline-block;min-width:38px;text-align:center;
+    font-size:.75rem;font-weight:700;padding:2px 7px;border-radius:99px;
+  }
+  .badge.up{background:var(--soft);color:var(--accent-deep)}
+  .badge.down{background:#F8E3DE;color:var(--down)}
+  .badge.same{background:var(--bg);color:var(--muted)}
+  .badge.new{background:var(--accent-deep);color:#fff}
+
+  .controls{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .ranges{display:flex;gap:6px}
+  .range-btn{
+    padding:5px 12px;font-size:.8rem;font-weight:600;cursor:pointer;
+    background:var(--bg);border:1px solid var(--line);border-radius:99px;color:var(--muted);
+  }
+  .range-btn.active{background:var(--accent-deep);border-color:var(--accent-deep);color:#fff}
+
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .chip{
+    display:flex;align-items:center;gap:6px;
+    padding:4px 11px;font-size:.8rem;font-weight:600;cursor:pointer;
+    background:var(--bg);border:1px solid var(--line);border-radius:99px;color:var(--muted);
+    transition:all .12s;
+  }
+  .chip .dot{width:8px;height:8px;border-radius:50%;background:var(--line)}
+  .chip.on{background:#fff;color:var(--ink);border-color:currentColor}
+  .chart-box{position:relative;height:340px}
+  @media (max-width:560px){.chart-box{height:280px}}
+
+  .empty{
+    text-align:center;color:var(--muted);font-size:.9rem;padding:36px 10px;
+  }
+  .empty b{color:var(--ink)}
+  footer{
+    text-align:center;font-size:.75rem;color:var(--muted);margin-top:28px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>실시간 <span class="accent">랭킹</span> 추적</h1>
+    <div class="updated" id="updated">데이터 불러오는 중…</div>
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="card">
+    <h2>최신 랭킹</h2>
+    <div id="latest"></div>
+  </div>
+
+  <div class="card">
+    <h2>순위 추이</h2>
+    <div class="controls">
+      <div class="ranges" id="ranges"></div>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="chart-box"><canvas id="chart"></canvas></div>
+  </div>
+
+  <footer>매시 7분경 자동 수집 · 네이버웹툰 실시간 인기웹툰 기준</footer>
+</div>
+
+<script>
+const CSV_URL = "data/ranking_log.csv";
+const PALETTE = ["#069A57","#0B5B38","#D95B43","#3B6FB5","#B58A2E","#7A4FB5","#C24E85","#4EA0A8","#8A5A3B","#5B6B60"];
+const RANGES = [["24시간",24],["3일",72],["7일",168],["전체",Infinity]];
+
+let rows = [];          // {ts, tab, rank, title, id, author}
+let tabs = [];
+let curTab = null;
+let curRange = 24;
+let selected = new Set();
+let chart = null;
+
+/* --- 따옴표를 처리하는 CSV 파서 --- */
+function parseCSV(text){
+  const out = [];
+  let row = [], field = "", inQ = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(inQ){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQ = false;
+      } else field += c;
+    } else {
+      if(c === '"') inQ = true;
+      else if(c === ','){ row.push(field); field=""; }
+      else if(c === '\n'){ row.push(field); out.push(row); row=[]; field=""; }
+      else if(c !== '\r') field += c;
+    }
+  }
+  if(field !== "" || row.length){ row.push(field); out.push(row); }
+  return out;
+}
+
+function fmtTime(ts){ // "2026-07-23 15:07" → "7/23 15시"
+  const m = ts.match(/\d{4}-(\d{2})-(\d{2}) (\d{2})/);
+  if(!m) return ts;
+  return `${+m[1]}/${+m[2]} ${m[3]}시`;
+}
+
+async function load(){
+  let text;
+  try{
+    const res = await fetch(CSV_URL, {cache:"no-store"});
+    if(!res.ok) throw new Error(res.status);
+    text = await res.text();
+  }catch(e){
+    document.getElementById("updated").textContent = "";
+    document.getElementById("latest").innerHTML =
+      `<div class="empty"><b>아직 수집된 데이터가 없어요.</b><br>
+       첫 수집이 완료되면(매시 7분경, 또는 Actions에서 수동 실행) 자동으로 표시됩니다.</div>`;
+    return;
+  }
+  const parsed = parseCSV(text.trim());
+  const header = parsed.shift();
+  rows = parsed.filter(r=>r.length>=4).map(r=>({
+    ts:r[0], tab:r[1], rank:+r[2], title:r[3], id:r[4]||"", author:r[5]||""
+  }));
+  if(!rows.length){ return; }
+
+  tabs = [...new Set(rows.map(r=>r.tab))];
+  curTab = tabs.includes("전체") ? "전체" : tabs[0];
+
+  const lastTs = rows.reduce((a,r)=>r.ts>a?r.ts:a, "");
+  document.getElementById("updated").innerHTML = `마지막 수집 <b>${lastTs}</b>`;
+
+  renderTabs();
+  refresh(true);
+}
+
+function renderTabs(){
+  const el = document.getElementById("tabs");
+  el.innerHTML = "";
+  tabs.forEach(t=>{
+    const d = document.createElement("div");
+    d.className = "tab" + (t===curTab?" active":"");
+    d.textContent = t;
+    d.onclick = ()=>{ curTab=t; renderTabs(); refresh(true); };
+    el.appendChild(d);
+  });
+
+  const rEl = document.getElementById("ranges");
+  rEl.innerHTML = "";
+  RANGES.forEach(([label,h])=>{
+    const b = document.createElement("button");
+    b.className = "range-btn" + (h===curRange?" active":"");
+    b.textContent = label;
+    b.onclick = ()=>{ curRange=h; renderTabs(); refresh(false); };
+    rEl.appendChild(b);
+  });
+}
+
+function tabRows(){ return rows.filter(r=>r.tab===curTab); }
+
+function refresh(resetSelection){
+  const tr = tabRows();
+  const tsList = [...new Set(tr.map(r=>r.ts))].sort();
+  if(!tsList.length){ return; }
+
+  /* --- 최신 랭킹 표 --- */
+  const last = tsList[tsList.length-1];
+  const prev = tsList.length>1 ? tsList[tsList.length-2] : null;
+  const lastRows = tr.filter(r=>r.ts===last).sort((a,b)=>a.rank-b.rank);
+  const prevMap = {};
+  if(prev) tr.filter(r=>r.ts===prev).forEach(r=>prevMap[r.title]=r.rank);
+
+  let html = `<table><tr><th>순위</th><th>변동</th><th>제목</th><th>작가</th></tr>`;
+  lastRows.forEach(r=>{
+    let badge;
+    if(!prev) badge = `<span class="badge same">–</span>`;
+    else if(!(r.title in prevMap)) badge = `<span class="badge new">NEW</span>`;
+    else{
+      const d = prevMap[r.title]-r.rank;
+      if(d>0) badge = `<span class="badge up">▲${d}</span>`;
+      else if(d<0) badge = `<span class="badge down">▼${-d}</span>`;
+      else badge = `<span class="badge same">–</span>`;
+    }
+    html += `<tr><td class="rank">${r.rank}</td><td>${badge}</td>
+             <td class="title-cell">${esc(r.title)}</td><td class="author">${esc(r.author)}</td></tr>`;
+  });
+  html += `</table>`;
+  document.getElementById("latest").innerHTML = html;
+
+  /* --- 추이 차트 --- */
+  if(resetSelection){
+    selected = new Set(lastRows.slice(0,10).map(r=>r.title));
+  }
+  const cutoff = curRange===Infinity ? "" : addHours(last, -curRange);
+  const rangeTs = tsList.filter(t=>t>=cutoff);
+  const rangeRows = tr.filter(r=>r.ts>=cutoff);
+  const titles = [...new Set(rangeRows.map(r=>r.title))];
+
+  const chipEl = document.getElementById("chips");
+  chipEl.innerHTML = "";
+  titles.forEach((t,i)=>{
+    const on = selected.has(t);
+    const color = PALETTE[i%PALETTE.length];
+    const c = document.createElement("div");
+    c.className = "chip"+(on?" on":"");
+    if(on) c.style.color = color;
+    c.innerHTML = `<span class="dot" style="${on?`background:${color}`:""}"></span>${esc(t)}`;
+    c.onclick = ()=>{ on?selected.delete(t):selected.add(t); refresh(false); };
+    chipEl.appendChild(c);
+  });
+
+  const datasets = titles.filter(t=>selected.has(t)).map(t=>{
+    const i = titles.indexOf(t);
+    const byTs = {};
+    rangeRows.filter(r=>r.title===t).forEach(r=>byTs[r.ts]=r.rank);
+    return {
+      label:t,
+      data:rangeTs.map(ts=>byTs[ts]??null),
+      borderColor:PALETTE[i%PALETTE.length],
+      backgroundColor:PALETTE[i%PALETTE.length],
+      pointRadius:2.5, pointHoverRadius:5,
+      borderWidth:2, tension:.25, spanGaps:false,
+    };
+  });
+
+  if(chart) chart.destroy();
+  chart = new Chart(document.getElementById("chart"), {
+    type:"line",
+    data:{ labels:rangeTs.map(fmtTime), datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:"nearest", intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{ label:(c)=>` ${c.dataset.label}: ${c.parsed.y}위` }
+        }
+      },
+      scales:{
+        y:{
+          reverse:true, min:1,
+          ticks:{stepSize:1, callback:v=>v+"위"},
+          grid:{color:"#E4EBE6"}
+        },
+        x:{
+          ticks:{maxTicksLimit:10, color:"#5B6B60", font:{size:11}},
+          grid:{display:false}
+        }
+      }
+    }
+  });
+}
+
+function addHours(ts, h){
+  const d = new Date(ts.replace(" ","T")+":00+09:00");
+  d.setHours(d.getHours()+h);
+  const p = n=>String(n).padStart(2,"0");
+  // KST 기준 문자열 재구성
+  const k = new Date(d.getTime()+9*3600*1000);
+  return `${k.getUTCFullYear()}-${p(k.getUTCMonth()+1)}-${p(k.getUTCDate())} ${p(k.getUTCHours())}:${p(k.getUTCMinutes())}`;
+}
+
+function esc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+load();
+</script>
+</body>
+</html>
