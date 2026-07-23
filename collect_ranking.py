@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-네이버웹툰 실시간 인기웹툰 랭킹 수집 v2 (GitHub Actions용)
-- 여성/남성 탭: 파라미터 후보를 순서대로 시도, 전체와 같은 결과가 오면 실패로 간주
-- 작가: {'writers':..., 'painters':...} 구조를 "글 ○○ / 그림 ○○" 형태로 정리
+네이버웹툰 실시간 인기웹툰 랭킹 수집 v3 (GitHub Actions용)
+- 확인된 실제 구조: 요청 1번(rankTabType=DEFAULT)에 세 탭 목록이 모두 포함됨
+    totalRankingTitleList  → 전체
+    femaleRankingTitleList → 여성
+    maleRankingTitleList   → 남성
+- 작가: displayAuthor 필드 사용 (예: "JP / 이히 / 유진성")
 - 결과: data/ranking_log.csv 누적
 """
 
@@ -19,14 +22,6 @@ CSV_PATH = os.path.join(DATA_DIR, "ranking_log.csv")
 
 API_URL = "https://comic.naver.com/api/realtime/ranking/list"
 
-# 각 탭에 대해 후보 파라미터를 순서대로 시도한다.
-# '전체'(DEFAULT)와 완전히 같은 목록이 돌아오면 파라미터가 무시된 것으로 보고 다음 후보로 넘어간다.
-TAB_CANDIDATES = {
-    "전체": ["DEFAULT"],
-    "여성": ["FEMALE", "WOMAN", "GIRL", "F"],
-    "남성": ["MALE", "MAN", "BOY", "M"],
-}
-
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -37,26 +32,16 @@ HEADERS = {
     "Accept": "application/json",
 }
 
+# 응답의 목록 키 → 대시보드에 표시할 탭 이름
+LIST_KEYS = {
+    "totalRankingTitleList": "전체",
+    "femaleRankingTitleList": "여성",
+    "maleRankingTitleList": "남성",
+}
+
 CSV_HEADER = ["기록시각", "탭", "순위", "제목", "titleId", "작가"]
 
 KST = timezone(timedelta(hours=9))
-
-
-def find_item_list(obj):
-    """JSON 어디에 있든 '딕셔너리들의 리스트'(랭킹 목록)를 찾아 반환."""
-    if isinstance(obj, list):
-        if obj and all(isinstance(x, dict) for x in obj):
-            return obj
-        for x in obj:
-            found = find_item_list(x)
-            if found:
-                return found
-    elif isinstance(obj, dict):
-        for v in obj.values():
-            found = find_item_list(v)
-            if found:
-                return found
-    return None
 
 
 def pick(d, *keys):
@@ -66,11 +51,12 @@ def pick(d, *keys):
     return ""
 
 
-def format_author(val):
-    """author가 {'writers':[...], 'painters':[...], 'originAuthors':[...]} 구조인
-    경우를 '글 ○○ / 그림 ○○ / 원작 ○○' 형태의 문자열로 정리한다."""
-    if isinstance(val, str):
-        return val
+def format_author(it):
+    """displayAuthor를 우선 사용하고, 없으면 author 구조에서 조립."""
+    da = it.get("displayAuthor")
+    if isinstance(da, str) and da.strip():
+        return da.strip()
+    val = it.get("author")
     if isinstance(val, dict):
         def names(key):
             out = []
@@ -78,10 +64,7 @@ def format_author(val):
                 if isinstance(p, dict) and p.get("name"):
                     out.append(str(p["name"]))
             return out
-
-        writers = names("writers")
-        painters = names("painters")
-        origin = names("originAuthors")
+        writers, painters, origin = names("writers"), names("painters"), names("originAuthors")
         parts = []
         if writers and painters and writers == painters:
             parts.append(" · ".join(writers))
@@ -96,78 +79,82 @@ def format_author(val):
     return str(val) if val else ""
 
 
-def fetch_tab(tab_type):
-    """해당 파라미터로 요청해 (성공여부, 아이템목록, 원본) 반환."""
+def find_ranking_lists(data):
+    """알려진 키를 우선 사용하되, 이름이 바뀌어도 *RankingTitleList 형태의
+    키를 재귀적으로 찾아 대응한다."""
+    found = {}
+
+    def walk(obj):
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                if (
+                    isinstance(v, list)
+                    and v
+                    and all(isinstance(x, dict) for x in v)
+                    and "rankingtitlelist" in k.lower()
+                ):
+                    found[k] = v
+                else:
+                    walk(v)
+        elif isinstance(obj, list):
+            for x in obj:
+                walk(x)
+
+    walk(data)
+    return found
+
+
+def tab_name_for_key(key):
+    if key in LIST_KEYS:
+        return LIST_KEYS[key]
+    low = key.lower()
+    if "female" in low:
+        return "여성"
+    if "male" in low:
+        return "남성"
+    if "total" in low or "all" in low:
+        return "전체"
+    return key  # 알 수 없는 키는 원문 그대로
+
+
+def main():
+    os.makedirs(DATA_DIR, exist_ok=True)
+    ts = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
+
     try:
         r = requests.get(
             API_URL,
-            params={"rankTabType": tab_type},
+            params={"rankTabType": "DEFAULT"},
             headers=HEADERS,
             timeout=15,
         )
         r.raise_for_status()
         data = r.json()
     except Exception as e:
-        return False, None, str(e)
-    items = find_item_list(data)
-    if not items:
-        return False, None, data
-    return True, items, data
+        print(f"[실패] 요청 오류: {e}")
+        return
 
+    lists = find_ranking_lists(data)
+    if not lists:
+        debug_path = os.path.join(DATA_DIR, "ranking_debug.json")
+        with open(debug_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        print(f"[실패] 랭킹 목록을 찾지 못함 → {debug_path} 저장")
+        return
 
-def signature(items):
-    """목록 비교용 서명 (titleId 또는 제목의 순서열)."""
-    return tuple(str(pick(it, "titleId", "id", "titleName", "title")) for it in items)
-
-
-def main():
-    os.makedirs(DATA_DIR, exist_ok=True)
-    ts = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
     all_rows = []
-    default_sig = None
-
-    for tab_name, candidates in TAB_CANDIDATES.items():
-        got = None
-        used = None
-        for cand in candidates:
-            ok, items, raw = fetch_tab(cand)
-            if not ok:
-                print(f"[시도 실패] {tab_name}({cand})")
-                continue
-            sig = signature(items)
-            if tab_name != "전체" and default_sig is not None and sig == default_sig:
-                # 파라미터가 무시되어 전체와 같은 결과가 온 경우
-                print(f"[무시됨] {tab_name}({cand}) - 전체와 동일한 결과")
-                continue
-            got, used = items, cand
-            break
-
-        if got is None:
-            # 마지막 응답 구조 확인용으로 디버그 저장
-            debug_path = os.path.join(DATA_DIR, f"ranking_debug_{tab_name}.json")
-            try:
-                with open(debug_path, "w", encoding="utf-8") as f:
-                    json.dump(raw if not isinstance(raw, str) else {"error": raw},
-                              f, ensure_ascii=False, indent=2)
-            except Exception:
-                pass
-            print(f"[실패] {tab_name}: 유효한 파라미터를 찾지 못함")
-            continue
-
-        if tab_name == "전체":
-            default_sig = signature(got)
-
-        for idx, it in enumerate(got, start=1):
+    # 전체 → 여성 → 남성 순서로 정렬해 기록
+    order = {"전체": 0, "여성": 1, "남성": 2}
+    for key in sorted(lists.keys(), key=lambda k: order.get(tab_name_for_key(k), 9)):
+        tab = tab_name_for_key(key)
+        items = lists[key]
+        for idx, it in enumerate(items, start=1):
             title = pick(it, "titleName", "title", "name")
             title_id = pick(it, "titleId", "id")
-            author = format_author(pick(it, "author", "displayAuthor", "writer", "communityArtists"))
+            author = format_author(it)
             rank = pick(it, "rank", "ranking") or idx
-            all_rows.append([ts, tab_name, rank, title, title_id, author])
-        print(f"[성공] {tab_name}({used}): {len(got)}건")
-
-    if not all_rows:
-        print("수집 결과가 없어 CSV를 갱신하지 않습니다.")
-        return
+            all_rows.append([ts, tab, rank, title, title_id, author])
+        print(f"[성공] {tab}({key}): {len(items)}건")
 
     new_file = not os.path.exists(CSV_PATH)
     with open(CSV_PATH, "a", newline="", encoding="utf-8") as f:
