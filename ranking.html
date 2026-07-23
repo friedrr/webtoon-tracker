@@ -19,8 +19,8 @@
     --soft:#DBEFE3;
     --line:#D5E1D8;
     --warn:#D95B43;
-    --up:#069A57;
-    --down:#D95B43;
+    --female:#C24E85;
+    --male:#3B6FB5;
     --radius:14px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
@@ -55,9 +55,7 @@
     transition:all .15s;
   }
   .tab:hover{border-color:var(--accent)}
-  .tab.active{
-    background:var(--accent-deep);border-color:var(--accent-deep);color:#fff;
-  }
+  .tab.active{background:var(--accent-deep);border-color:var(--accent-deep);color:#fff}
 
   .card{
     background:var(--card);border:1px solid var(--line);
@@ -77,22 +75,24 @@
     text-align:left;font-size:.78rem;color:var(--muted);font-weight:600;
     padding:6px 8px;border-bottom:1px solid var(--line);
   }
-  td{padding:9px 8px;border-bottom:1px solid var(--bg)}
+  td{padding:9px 8px;border-bottom:1px solid var(--bg);vertical-align:middle}
   tr:last-child td{border-bottom:none}
   td.rank{
     font-family:"Gowun Batang",serif;font-weight:700;font-size:1.05rem;
     width:44px;color:var(--accent-deep);
   }
-  td.title-cell{font-weight:600}
-  td.author{color:var(--muted);font-size:.85rem}
+  td.title-cell{font-weight:600;cursor:pointer}
+  td.title-cell:hover{color:var(--accent-deep);text-decoration:underline}
+  td.author{color:var(--muted);font-size:.83rem}
   .badge{
     display:inline-block;min-width:38px;text-align:center;
     font-size:.75rem;font-weight:700;padding:2px 7px;border-radius:99px;
   }
   .badge.up{background:var(--soft);color:var(--accent-deep)}
-  .badge.down{background:#F8E3DE;color:var(--down)}
+  .badge.down{background:#F8E3DE;color:var(--warn)}
   .badge.same{background:var(--bg);color:var(--muted)}
   .badge.new{background:var(--accent-deep);color:#fff}
+  .move-detail{font-size:.75rem;color:var(--muted);display:block;margin-top:2px}
 
   .controls{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
   .ranges{display:flex;gap:6px}
@@ -112,15 +112,44 @@
   .chip .dot{width:8px;height:8px;border-radius:50%;background:var(--line)}
   .chip.on{background:#fff;color:var(--ink);border-color:currentColor}
   .chart-box{position:relative;height:340px}
-  @media (max-width:560px){.chart-box{height:280px}}
+  .chart-box.small{height:240px;margin-bottom:16px}
+  @media (max-width:560px){.chart-box{height:280px}.chart-box.small{height:200px}}
 
-  .empty{
-    text-align:center;color:var(--muted);font-size:.9rem;padding:36px 10px;
+  .search-row{display:flex;gap:8px;margin-bottom:12px}
+  .search-input{
+    flex:1;padding:10px 14px;font-size:.92rem;
+    font-family:inherit;color:var(--ink);
+    background:var(--bg);border:1px solid var(--line);border-radius:10px;
+    outline:none;
   }
+  .search-input:focus{border-color:var(--accent);background:#fff}
+  .search-results{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+  .result-chip{
+    padding:5px 12px;font-size:.83rem;font-weight:600;cursor:pointer;
+    background:var(--soft);border:1px solid var(--line);border-radius:99px;
+    color:var(--accent-deep);
+  }
+  .result-chip:hover{border-color:var(--accent)}
+  .history-head{
+    display:flex;align-items:baseline;justify-content:space-between;
+    gap:8px;flex-wrap:wrap;margin:14px 0 10px;
+  }
+  .history-title{
+    font-family:"Gowun Batang",serif;font-size:1.1rem;font-weight:700;
+  }
+  .history-summary{font-size:.8rem;color:var(--muted)}
+  .tab-label{
+    display:inline-block;font-size:.72rem;font-weight:700;
+    padding:1px 8px;border-radius:99px;background:var(--bg);color:var(--muted);
+  }
+  .tab-label.전체{background:var(--soft);color:var(--accent-deep)}
+  .tab-label.여성{background:#F7E4EE;color:var(--female)}
+  .tab-label.남성{background:#E2EBF7;color:var(--male)}
+
+  .empty{text-align:center;color:var(--muted);font-size:.9rem;padding:36px 10px}
   .empty b{color:var(--ink)}
-  footer{
-    text-align:center;font-size:.75rem;color:var(--muted);margin-top:28px;
-  }
+  .note{font-size:.78rem;color:var(--muted);margin-top:8px}
+  footer{text-align:center;font-size:.75rem;color:var(--muted);margin-top:28px}
 </style>
 </head>
 <body>
@@ -146,20 +175,32 @@
     <div class="chart-box"><canvas id="chart"></canvas></div>
   </div>
 
+  <div class="card">
+    <h2>작품 검색</h2>
+    <div class="search-row">
+      <input class="search-input" id="searchInput" type="text"
+             placeholder="작품 제목으로 검색 (예: 나노마신)" autocomplete="off">
+    </div>
+    <div class="search-results" id="searchResults"></div>
+    <div id="history"></div>
+  </div>
+
   <footer>매시 7분경 자동 수집 · 네이버웹툰 실시간 인기웹툰 기준</footer>
 </div>
 
 <script>
 const CSV_URL = "data/ranking_log.csv";
 const PALETTE = ["#069A57","#0B5B38","#D95B43","#3B6FB5","#B58A2E","#7A4FB5","#C24E85","#4EA0A8","#8A5A3B","#5B6B60"];
+const TAB_COLORS = {"전체":"#0B5B38","여성":"#C24E85","남성":"#3B6FB5"};
 const RANGES = [["24시간",24],["3일",72],["7일",168],["전체",Infinity]];
 
-let rows = [];          // {ts, tab, rank, title, id, author}
+let rows = [];
 let tabs = [];
 let curTab = null;
 let curRange = 24;
 let selected = new Set();
 let chart = null;
+let historyChart = null;
 
 /* --- 따옴표를 처리하는 CSV 파서 --- */
 function parseCSV(text){
@@ -183,7 +224,17 @@ function parseCSV(text){
   return out;
 }
 
-function fmtTime(ts){ // "2026-07-23 15:07" → "7/23 15시"
+/* 초기 수집분에 작가가 JSON 원문으로 저장된 행 정리 */
+function cleanAuthor(s){
+  if(!s) return "";
+  if(s.startsWith("{'") || s.startsWith('{"')){
+    const names = [...s.matchAll(/'name':\s*'([^']+)'/g)].map(m=>m[1]);
+    return [...new Set(names)].join(" · ");
+  }
+  return s;
+}
+
+function fmtTime(ts){
   const m = ts.match(/\d{4}-(\d{2})-(\d{2}) (\d{2})/);
   if(!m) return ts;
   return `${+m[1]}/${+m[2]} ${m[3]}시`;
@@ -203,11 +254,11 @@ async function load(){
     return;
   }
   const parsed = parseCSV(text.trim());
-  const header = parsed.shift();
+  parsed.shift(); // 헤더 제거
   rows = parsed.filter(r=>r.length>=4).map(r=>({
-    ts:r[0], tab:r[1], rank:+r[2], title:r[3], id:r[4]||"", author:r[5]||""
+    ts:r[0], tab:r[1], rank:+r[2], title:r[3], id:r[4]||"", author:cleanAuthor(r[5]||"")
   }));
-  if(!rows.length){ return; }
+  if(!rows.length) return;
 
   tabs = [...new Set(rows.map(r=>r.tab))];
   curTab = tabs.includes("전체") ? "전체" : tabs[0];
@@ -217,6 +268,7 @@ async function load(){
 
   renderTabs();
   refresh(true);
+  setupSearch();
 }
 
 function renderTabs(){
@@ -246,7 +298,7 @@ function tabRows(){ return rows.filter(r=>r.tab===curTab); }
 function refresh(resetSelection){
   const tr = tabRows();
   const tsList = [...new Set(tr.map(r=>r.ts))].sort();
-  if(!tsList.length){ return; }
+  if(!tsList.length) return;
 
   /* --- 최신 랭킹 표 --- */
   const last = tsList[tsList.length-1];
@@ -257,19 +309,26 @@ function refresh(resetSelection){
 
   let html = `<table><tr><th>순위</th><th>변동</th><th>제목</th><th>작가</th></tr>`;
   lastRows.forEach(r=>{
-    let badge;
-    if(!prev) badge = `<span class="badge same">–</span>`;
-    else if(!(r.title in prevMap)) badge = `<span class="badge new">NEW</span>`;
-    else{
-      const d = prevMap[r.title]-r.rank;
-      if(d>0) badge = `<span class="badge up">▲${d}</span>`;
-      else if(d<0) badge = `<span class="badge down">▼${-d}</span>`;
-      else badge = `<span class="badge same">–</span>`;
+    let badge, detail="";
+    if(!prev){
+      badge = `<span class="badge same">–</span>`;
+      detail = `<span class="move-detail">첫 수집</span>`;
     }
-    html += `<tr><td class="rank">${r.rank}</td><td>${badge}</td>
-             <td class="title-cell">${esc(r.title)}</td><td class="author">${esc(r.author)}</td></tr>`;
+    else if(!(r.title in prevMap)){
+      badge = `<span class="badge new">진입</span>`;
+      detail = `<span class="move-detail">순위권 밖 → ${r.rank}위</span>`;
+    }
+    else{
+      const p = prevMap[r.title], d = p - r.rank;
+      if(d>0){ badge = `<span class="badge up">▲${d}</span>`; detail = `<span class="move-detail">${p}위 → ${r.rank}위</span>`; }
+      else if(d<0){ badge = `<span class="badge down">▼${-d}</span>`; detail = `<span class="move-detail">${p}위 → ${r.rank}위</span>`; }
+      else badge = `<span class="badge same">유지</span>`;
+    }
+    html += `<tr><td class="rank">${r.rank}</td><td>${badge}${detail}</td>
+             <td class="title-cell" onclick="showHistory('${escJs(r.title)}')">${esc(r.title)}</td>
+             <td class="author">${esc(r.author)}</td></tr>`;
   });
-  html += `</table>`;
+  html += `</table><div class="note">제목을 클릭하면 해당 작품의 순위 이력을 볼 수 있어요. 변동은 직전 수집(1시간 전) 대비입니다.</div>`;
   document.getElementById("latest").innerHTML = html;
 
   /* --- 추이 차트 --- */
@@ -317,36 +376,115 @@ function refresh(resetSelection){
       interaction:{mode:"nearest", intersect:false},
       plugins:{
         legend:{display:false},
-        tooltip:{
-          callbacks:{ label:(c)=>` ${c.dataset.label}: ${c.parsed.y}위` }
-        }
+        tooltip:{ callbacks:{ label:(c)=>` ${c.dataset.label}: ${c.parsed.y}위` } }
       },
       scales:{
-        y:{
-          reverse:true, min:1,
-          ticks:{stepSize:1, callback:v=>v+"위"},
-          grid:{color:"#E4EBE6"}
-        },
-        x:{
-          ticks:{maxTicksLimit:10, color:"#5B6B60", font:{size:11}},
-          grid:{display:false}
-        }
+        y:{ reverse:true, min:1, ticks:{stepSize:1, callback:v=>v+"위"}, grid:{color:"#E4EBE6"} },
+        x:{ ticks:{maxTicksLimit:10, color:"#5B6B60", font:{size:11}}, grid:{display:false} }
       }
     }
   });
+}
+
+/* ============ 작품 검색 & 이력 ============ */
+function setupSearch(){
+  const input = document.getElementById("searchInput");
+  const resEl = document.getElementById("searchResults");
+  input.addEventListener("input", ()=>{
+    const q = input.value.trim().toLowerCase();
+    resEl.innerHTML = "";
+    if(!q) return;
+    const matches = [...new Set(rows.map(r=>r.title))]
+      .filter(t=>t.toLowerCase().includes(q)).slice(0,12);
+    if(!matches.length){
+      resEl.innerHTML = `<span class="note">수집된 기록 중에 일치하는 작품이 없어요.</span>`;
+      return;
+    }
+    matches.forEach(t=>{
+      const c = document.createElement("div");
+      c.className = "result-chip";
+      c.textContent = t;
+      c.onclick = ()=>showHistory(t);
+      resEl.appendChild(c);
+    });
+  });
+}
+
+function showHistory(title){
+  const el = document.getElementById("history");
+  const recs = rows.filter(r=>r.title===title).sort((a,b)=>a.ts<b.ts?1:-1); // 최신순
+  if(!recs.length){ el.innerHTML = ""; return; }
+
+  const best = Math.min(...recs.map(r=>r.rank));
+  const first = recs[recs.length-1], latest = recs[0];
+  const tabsSeen = [...new Set(recs.map(r=>r.tab))];
+
+  /* 요약 + 차트 + 표 */
+  let html = `
+    <div class="history-head">
+      <div class="history-title">${esc(title)}</div>
+      <div class="history-summary">
+        최고 <b>${best}위</b> · 첫 기록 ${first.ts} (${esc(first.tab)} ${first.rank}위) · 최근 ${latest.ts} (${esc(latest.tab)} ${latest.rank}위)
+      </div>
+    </div>
+    <div class="chart-box small"><canvas id="historyChart"></canvas></div>
+    <table><tr><th>기록시각</th><th>탭</th><th>순위</th></tr>`;
+  recs.slice(0,200).forEach(r=>{
+    html += `<tr><td>${r.ts}</td>
+             <td><span class="tab-label ${esc(r.tab)}">${esc(r.tab)}</span></td>
+             <td class="rank">${r.rank}</td></tr>`;
+  });
+  html += `</table>`;
+  if(recs.length>200) html += `<div class="note">최근 200건만 표시했어요. (전체 ${recs.length}건)</div>`;
+  el.innerHTML = html;
+
+  /* 탭별 라인 차트 */
+  const tsAll = [...new Set(recs.map(r=>r.ts))].sort();
+  const datasets = tabsSeen.map(tab=>{
+    const byTs = {};
+    recs.filter(r=>r.tab===tab).forEach(r=>byTs[r.ts]=r.rank);
+    return {
+      label:tab,
+      data:tsAll.map(ts=>byTs[ts]??null),
+      borderColor:TAB_COLORS[tab]||"#5B6B60",
+      backgroundColor:TAB_COLORS[tab]||"#5B6B60",
+      pointRadius:2.5, pointHoverRadius:5,
+      borderWidth:2, tension:.25, spanGaps:false,
+    };
+  });
+  if(historyChart) historyChart.destroy();
+  historyChart = new Chart(document.getElementById("historyChart"), {
+    type:"line",
+    data:{ labels:tsAll.map(fmtTime), datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:"nearest", intersect:false},
+      plugins:{
+        legend:{display:true, position:"top", labels:{boxWidth:10, font:{size:11}}},
+        tooltip:{ callbacks:{ label:(c)=>` ${c.dataset.label}: ${c.parsed.y}위` } }
+      },
+      scales:{
+        y:{ reverse:true, min:1, ticks:{stepSize:1, callback:v=>v+"위"}, grid:{color:"#E4EBE6"} },
+        x:{ ticks:{maxTicksLimit:8, color:"#5B6B60", font:{size:11}}, grid:{display:false} }
+      }
+    }
+  });
+  el.scrollIntoView({behavior:"smooth", block:"nearest"});
 }
 
 function addHours(ts, h){
   const d = new Date(ts.replace(" ","T")+":00+09:00");
   d.setHours(d.getHours()+h);
   const p = n=>String(n).padStart(2,"0");
-  // KST 기준 문자열 재구성
   const k = new Date(d.getTime()+9*3600*1000);
   return `${k.getUTCFullYear()}-${p(k.getUTCMonth()+1)}-${p(k.getUTCDate())} ${p(k.getUTCHours())}:${p(k.getUTCMinutes())}`;
 }
 
 function esc(s){
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function escJs(s){
+  return String(s).replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/"/g,"&quot;");
 }
 
 load();
