@@ -1,21 +1,28 @@
 {
-  "updatedAtUtc": "2026-07-23T22:00:00+00:00",
+  "updatedAtUtc": "2026-07-23T23:03:56+00:00",
   "titleOrder": [
     "851689",
-    "852628"
+    "852628",
+    "852601"
   ],
   "titles": {
     "851689": {
       "titleName": "멸귀수도전",
       "pageUrl": "https://comic.naver.com/webtoon/list?titleId=851689",
-      "latestCount": 21684,
-      "updatedAtUtc": "2026-07-23T22:00:00+00:00"
+      "latestCount": 21779,
+      "updatedAtUtc": "2026-07-23T23:03:56+00:00"
     },
     "852628": {
       "titleName": "내가 죽인 드래곤과 결혼했다",
       "pageUrl": "https://comic.naver.com/webtoon/list?titleId=852628",
-      "latestCount": 54095,
-      "updatedAtUtc": "2026-07-23T22:00:00+00:00"
+      "latestCount": 54129,
+      "updatedAtUtc": "2026-07-23T23:03:56+00:00"
+    },
+    "852601": {
+      "titleName": "곤륜에 용이 산다",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=852601",
+      "latestCount": 4958,
+      "updatedAtUtc": "2026-07-23T23:03:56+00:00"
     }
   }
 }
