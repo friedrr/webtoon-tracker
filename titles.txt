@@ -3,3 +3,4 @@
 # '#' 뒤에는 자유롭게 메모를 남길 수 있습니다.
 
 https://comic.naver.com/webtoon/list?titleId=851689   # 내 작품
+https://comic.naver.com/webtoon/list?titleId=852628
