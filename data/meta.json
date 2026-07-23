@@ -1,7 +1,21 @@
 {
-  "titleId": "851689",
-  "titleName": "멸귀수도전",
-  "pageUrl": "https://comic.naver.com/webtoon/list?titleId=851689",
-  "updatedAtUtc": "2026-07-23T12:51:03+00:00",
-  "latestCount": 20444
+  "updatedAtUtc": "2026-07-23T13:04:29+00:00",
+  "titleOrder": [
+    "851689",
+    "852628"
+  ],
+  "titles": {
+    "851689": {
+      "titleName": "멸귀수도전",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=851689",
+      "latestCount": 20471,
+      "updatedAtUtc": "2026-07-23T13:04:29+00:00"
+    },
+    "852628": {
+      "titleName": "내가 죽인 드래곤과 결혼했다",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=852628",
+      "latestCount": 53616,
+      "updatedAtUtc": "2026-07-23T13:04:29+00:00"
+    }
+  }
 }
