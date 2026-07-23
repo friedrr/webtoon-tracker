@@ -4,7 +4,7 @@ on:
   schedule:
     # 매시 30분에 미리 시작 → 스크립트가 다음 정각까지 기다렸다가 수집.
     # GitHub 예약이 최대 30분 밀려도 기록은 항상 정각에 찍힘.
-    - cron: "30 * * * *"
+    - cron: "35,45,55 * * * *"
   workflow_dispatch: {}   # Actions 탭에서 수동 실행 버튼 활성화
 
 permissions:
