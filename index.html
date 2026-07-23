@@ -48,10 +48,7 @@
   .updated{font-size:13px;color:var(--muted)}
 
   /* 작품 전환 탭 */
-  .tabs{
-    display:flex;gap:6px;flex-wrap:wrap;
-    margin-bottom:16px;
-  }
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
   .tabs button{
     border:1px solid var(--line);background:var(--card);color:var(--muted);
     font:inherit;font-size:14px;padding:8px 16px;border-radius:999px;cursor:pointer;
@@ -62,6 +59,8 @@
     background:var(--accent-deep);border-color:var(--accent-deep);
     color:#fff;font-weight:700;
   }
+  .tabs button.compare-tab{border-style:dashed}
+  .tabs button.compare-tab.on{border-style:solid}
 
   /* 히어로 */
   .hero{
@@ -115,18 +114,20 @@
     gap:10px;flex-wrap:wrap;margin-bottom:14px;
   }
   h2{font-family:"Gowun Batang",serif;font-size:17px;font-weight:700}
-  .range{display:flex;gap:4px}
-  .range button{
+  .btn-group{display:flex;gap:4px;flex-wrap:wrap}
+  .btn-group button{
     border:1px solid var(--line);background:transparent;color:var(--muted);
     font:inherit;font-size:13px;padding:5px 12px;border-radius:999px;cursor:pointer;
   }
-  .range button:hover{border-color:var(--accent)}
-  .range button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  .range button.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+  .btn-group button:hover{border-color:var(--accent)}
+  .btn-group button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .btn-group button.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
   .chart-box{position:relative;height:300px}
   .chart-box.short{height:220px}
+  .chart-box.tall{height:340px}
+  .mode-note{font-size:12.5px;color:var(--muted);margin-top:10px}
 
-  /* 일별 표 */
+  /* 표 */
   table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
   th,td{padding:9px 6px;text-align:right;font-size:14px;border-bottom:1px solid var(--line)}
   th:first-child,td:first-child{text-align:left}
@@ -134,6 +135,11 @@
   tr:last-child td{border-bottom:none}
   td.up{color:var(--accent-deep);font-weight:600}
   td.down{color:var(--warn);font-weight:600}
+  .swatch{
+    display:inline-block;width:10px;height:10px;border-radius:3px;
+    margin-right:7px;vertical-align:baseline;
+  }
+  .tbl-scroll{overflow-x:auto}
 
   /* 상태 메시지 */
   .notice{
@@ -166,6 +172,7 @@
     저장소의 Actions 탭에서 「관심수 수집」을 수동 실행해 보세요.
   </div>
 
+  <!-- ===== 단일 작품 뷰 ===== -->
   <div id="dash" class="hidden">
 
     <div class="hero">
@@ -191,7 +198,7 @@
     <section>
       <div class="sec-head">
         <h2>관심수 추이</h2>
-        <div class="range" id="rangeBtns" role="group" aria-label="조회 기간">
+        <div class="btn-group" id="rangeBtns" role="group" aria-label="조회 기간">
           <button data-h="24">24시간</button>
           <button data-h="72">3일</button>
           <button data-h="168">7일</button>
@@ -216,6 +223,44 @@
 
   </div>
 
+  <!-- ===== 비교 뷰 ===== -->
+  <div id="compare" class="hidden">
+
+    <section>
+      <div class="sec-head">
+        <h2>작품 비교</h2>
+        <div class="btn-group" id="cmpModeBtns" role="group" aria-label="비교 방식">
+          <button data-mode="growth" class="on">증가량</button>
+          <button data-mode="absolute">관심수</button>
+        </div>
+      </div>
+      <div class="sec-head" style="margin-top:-4px">
+        <div class="btn-group" id="cmpRangeBtns" role="group" aria-label="조회 기간">
+          <button data-h="24">24시간</button>
+          <button data-h="72" class="on">3일</button>
+          <button data-h="168">7일</button>
+          <button data-h="0">전체</button>
+        </div>
+      </div>
+      <div class="chart-box tall"><canvas id="cmpChart"></canvas></div>
+      <div class="mode-note" id="cmpNote"></div>
+    </section>
+
+    <section>
+      <div class="sec-head"><h2>작품별 요약</h2></div>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr>
+            <th>작품</th><th>현재 관심수</th><th>오늘 증가</th>
+            <th>24시간 증가</th><th>시간당 평균</th>
+          </tr></thead>
+          <tbody id="cmpBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
   <footer>매시간 자동 수집 · GitHub Actions + GitHub Pages</footer>
 </div>
 
@@ -224,6 +269,7 @@
   const $ = id => document.getElementById(id);
   const fmt = n => n.toLocaleString("ko-KR");
   const KST = 9*3600*1000;
+  const COMPARE = "__compare__";
 
   const kstDateKey = t => {
     const d = new Date(t + KST);
@@ -239,7 +285,10 @@
   Chart.defaults.font.family = '"Pretendard", sans-serif';
   Chart.defaults.color = css("--muted");
 
-  // 시그니처: 자정(KST)마다 컷 경계선 + 날짜 라벨
+  // 작품별 색상 팔레트 (테마와 어울리는 구분색)
+  const PALETTE = ["#069A57","#4C5FD5","#E2604A","#C98A1B","#8455C9","#1793A6","#C24C86","#5E7212"];
+
+  // 시그니처: 자정(KST)마다 컷 경계선 (category 축용)
   const dayGutter = {
     id:"dayGutter",
     afterDraw(chart){
@@ -268,46 +317,129 @@
     }
   };
 
-  // ---------- 메타 정보 로드 ----------
+  // 자정 컷 경계선 (비교 차트: linear 시간축용)
+  const dayGutterLinear = {
+    id:"dayGutterLinear",
+    afterDraw(chart){
+      const {ctx, chartArea:a, scales:{x}} = chart;
+      if(!x || x.min === undefined) return;
+      ctx.save();
+      // x.min 이후의 첫 자정(KST)부터 하루씩
+      let m = Math.ceil((x.min + KST) / 86400000) * 86400000 - KST;
+      for(; m < x.max; m += 86400000){
+        const px = x.getPixelForValue(m);
+        if(px < a.left || px > a.right) continue;
+        ctx.strokeStyle = css("--line");
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4,4]);
+        ctx.beginPath(); ctx.moveTo(px, a.top); ctx.lineTo(px, a.bottom); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = css("--muted");
+        ctx.font = '11px "Pretendard", sans-serif';
+        ctx.textAlign = "left";
+        ctx.fillText(kstDateKey(m).slice(5).replace("-","/"), px+5, a.top+12);
+      }
+      ctx.restore();
+    }
+  };
+
+  // ---------- 메타 + 전체 데이터 로드 ----------
   let meta = {};
   try{
     const r = await fetch("data/meta.json", {cache:"no-store"});
     if(r.ok) meta = await r.json();
   }catch(e){}
 
-  // 신구 형식 모두 지원: {titles:{id:{...}}} 또는 예전 단일 형식 {titleId, titleName}
   let titles = meta.titles || {};
   let order = meta.titleOrder || Object.keys(titles);
   if(order.length === 0 && meta.titleId){
     titles = {[meta.titleId]: {titleName: meta.titleName}};
     order = [meta.titleId];
   }
-
   if(order.length === 0){
     $("empty").classList.remove("hidden");
     return;
   }
 
-  // ---------- 작품 탭 ----------
+  async function loadCsv(tid){
+    try{
+      let r = await fetch(`data/${tid}.csv`, {cache:"no-store"});
+      if(!r.ok && tid === order[0]) r = await fetch("data/history.csv", {cache:"no-store"});
+      if(!r.ok) return [];
+      const text = await r.text();
+      return text.trim().split(/\r?\n/).slice(1)
+        .map(line=>{
+          const [t,c] = line.split(",");
+          return {t:new Date(t).getTime(), c:parseInt(c,10)};
+        })
+        .filter(d=>Number.isFinite(d.t)&&Number.isFinite(d.c))
+        .sort((a,b)=>a.t-b.t);
+    }catch(e){ return []; }
+  }
+
+  const series = {};
+  await Promise.all(order.map(async tid => { series[tid] = await loadCsv(tid); }));
+  const withData = order.filter(tid => series[tid].length > 0);
+
+  if(withData.length === 0){
+    $("empty").classList.remove("hidden");
+    return;
+  }
+
+  const nameOf = tid => (titles[tid] && titles[tid].titleName) || tid;
+  const colorOf = tid => PALETTE[order.indexOf(tid) % PALETTE.length];
+
+  // 작품별 요약 수치 계산 (단일 뷰와 비교 표에서 공용)
+  function statsOf(rows){
+    const latest = rows[rows.length-1];
+    const at = cutoff => {
+      let v = null;
+      for(const r of rows){ if(r.t <= cutoff) v = r; else break; }
+      return v;
+    };
+    const d = new Date(latest.t + KST);
+    const dayStart = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - KST;
+    const base24 = at(latest.t - 24*3600*1000) || rows[0];
+    const baseDay = at(dayStart) || rows[0];
+    const d24 = latest.c - base24.c;
+    const spanH = Math.max((latest.t - base24.t)/3600000, 1);
+    return {
+      latest,
+      d24,
+      dToday: latest.c - baseDay.c,
+      perHour: Math.round(d24/spanH),
+    };
+  }
+
+  // ---------- 탭 ----------
   const tabsEl = $("tabs");
   if(order.length > 1){
     for(const tid of order){
       const b = document.createElement("button");
-      b.type = "button";
-      b.dataset.tid = tid;
-      b.setAttribute("role","tab");
-      b.textContent = (titles[tid] && titles[tid].titleName) || tid;
+      b.type = "button"; b.dataset.tid = tid; b.setAttribute("role","tab");
+      b.textContent = nameOf(tid);
       tabsEl.appendChild(b);
     }
+    const cmp = document.createElement("button");
+    cmp.type = "button"; cmp.dataset.tid = COMPARE; cmp.setAttribute("role","tab");
+    cmp.className = "compare-tab";
+    cmp.textContent = "비교 보기";
+    tabsEl.appendChild(cmp);
+
     tabsEl.addEventListener("click", e=>{
       const b = e.target.closest("button");
       if(!b || b.classList.contains("on")) return;
-      location.hash = b.dataset.tid;
+      location.hash = b.dataset.tid === COMPARE ? "compare" : b.dataset.tid;
       select(b.dataset.tid);
     });
   }
 
-  // ---------- 차트/표 상태 ----------
+  function setTab(tid){
+    document.querySelectorAll("#tabs button").forEach(b=>
+      b.classList.toggle("on", b.dataset.tid === tid));
+  }
+
+  // ---------- 단일 작품 뷰 ----------
   let trendChart = null, deltaChart = null;
   let rows = [], latest = null, rangeH = 0;
 
@@ -401,32 +533,12 @@
     }
   }
 
-  // ---------- 작품 선택 → 데이터 로드 및 렌더 ----------
-  async function select(tid){
-    document.querySelectorAll("#tabs button").forEach(b=>
-      b.classList.toggle("on", b.dataset.tid === tid));
-
-    const info = titles[tid] || {};
-    const name = info.titleName || tid;
+  function showSingle(tid){
+    $("compare").classList.add("hidden");
+    rows = series[tid] || [];
+    const name = nameOf(tid);
     $("titleName").textContent = name;
     document.title = name + " · 관심수 추적";
-
-    rows = [];
-    try{
-      // 신규 파일명 우선, 없으면 예전 history.csv 시도
-      let r = await fetch(`data/${tid}.csv`, {cache:"no-store"});
-      if(!r.ok) r = await fetch("data/history.csv", {cache:"no-store"});
-      if(r.ok){
-        const text = await r.text();
-        rows = text.trim().split(/\r?\n/).slice(1)
-          .map(line=>{
-            const [t,c] = line.split(",");
-            return {t:new Date(t).getTime(), c:parseInt(c,10)};
-          })
-          .filter(d=>Number.isFinite(d.t)&&Number.isFinite(d.c))
-          .sort((a,b)=>a.t-b.t);
-      }
-    }catch(e){}
 
     if(rows.length === 0){
       $("dash").classList.add("hidden");
@@ -436,39 +548,118 @@
     $("empty").classList.add("hidden");
     $("dash").classList.remove("hidden");
 
-    latest = rows[rows.length-1];
+    const s = statsOf(rows);
+    latest = s.latest;
     $("currentCount").textContent = fmt(latest.c);
     $("updatedAt").textContent = "마지막 기록 " + fmtTime(latest.t);
     $("recordCount").innerHTML = fmt(rows.length) + " <span>회</span>";
-
-    const at = cutoff => {
-      let v = null;
-      for(const r of rows){ if(r.t <= cutoff) v = r; else break; }
-      return v;
-    };
-    const d = new Date(latest.t + KST);
-    const dayStartKst = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - KST;
-    const base24 = at(latest.t - 24*3600*1000) || rows[0];
-    const baseDay = at(dayStartKst) || rows[0];
-
-    const d24 = latest.c - base24.c;
-    const dToday = latest.c - baseDay.c;
-    const spanH = Math.max((latest.t - base24.t)/3600000, 1);
-
-    $("delta24").textContent = signed(d24);
-    $("todayDelta").textContent = signed(dToday);
-    $("hourlyAvg").innerHTML = fmt(Math.round(d24/spanH)) + " <span>/시간</span>";
-
+    $("delta24").textContent = signed(s.d24);
+    $("todayDelta").textContent = signed(s.dToday);
+    $("hourlyAvg").innerHTML = fmt(s.perHour) + " <span>/시간</span>";
     const chip = $("chip24");
-    chip.innerHTML = signed(d24) + " <small>지난 24시간</small>";
-    chip.classList.toggle("down", d24 < 0);
+    chip.innerHTML = signed(s.d24) + " <small>지난 24시간</small>";
+    chip.classList.toggle("down", s.d24 < 0);
 
-    drawTrend();
-    drawDelta();
-    drawTable();
+    drawTrend(); drawDelta(); drawTable();
   }
 
-  // 기간 토글
+  // ---------- 비교 뷰 ----------
+  let cmpChart = null;
+  let cmpMode = "growth";   // growth | absolute
+  let cmpRangeH = 72;
+
+  function drawCompare(){
+    const now = Math.max(...withData.map(tid => series[tid][series[tid].length-1].t));
+    const cut = cmpRangeH ? now - cmpRangeH*3600000 : 0;
+
+    const datasets = [];
+    for(const tid of withData){
+      const data = series[tid].filter(r=>r.t >= cut);
+      if(data.length === 0) continue;
+      const base = cmpMode === "growth" ? data[0].c : 0;
+      datasets.push({
+        label: nameOf(tid),
+        data: data.map(r=>({x:r.t, y:r.c - base})),
+        borderColor: colorOf(tid),
+        backgroundColor: colorOf(tid),
+        borderWidth: 2, fill: false, tension: .25,
+        pointRadius: data.length > 60 ? 0 : 2,
+        pointHoverRadius: 4,
+      });
+    }
+
+    if(cmpChart) cmpChart.destroy();
+    cmpChart = new Chart($("cmpChart"), {
+      type:"line",
+      data:{datasets},
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        interaction:{mode:"nearest", axis:"x", intersect:false},
+        plugins:{
+          legend:{position:"bottom", labels:{usePointStyle:true, pointStyle:"rectRounded", boxWidth:9, boxHeight:9, padding:16}},
+          tooltip:{callbacks:{
+            title:items=>fmtTime(items[0].parsed.x),
+            label:c=>` ${c.dataset.label}: ${cmpMode==="growth" ? signed(c.parsed.y) : fmt(c.parsed.y)}`
+          }}
+        },
+        scales:{
+          x:{
+            type:"linear",
+            ticks:{maxTicksLimit:7, maxRotation:0, callback:v=>fmtTime(v)},
+            grid:{display:false}
+          },
+          y:{
+            grace:"5%",
+            ticks:{callback:v=>cmpMode==="growth" ? signed(v) : fmt(v)},
+            grid:{color:css("--line")}
+          }
+        }
+      },
+      plugins:[dayGutterLinear]
+    });
+
+    $("cmpNote").textContent = cmpMode === "growth"
+      ? "증가량 모드: 각 작품의 기간 시작 시점을 0으로 맞춰, 선택한 기간 동안 얼마나 늘었는지를 비교합니다."
+      : "관심수 모드: 실제 관심수 값을 그대로 겹쳐 보여줍니다. 작품 간 규모 차이가 크면 증가량 모드가 비교에 유리합니다.";
+  }
+
+  function drawCompareTable(){
+    const tbody = $("cmpBody");
+    tbody.innerHTML = "";
+    // 24시간 증가 순으로 정렬
+    const ranked = [...withData].sort((a,b)=>statsOf(series[b]).d24 - statsOf(series[a]).d24);
+    for(const tid of ranked){
+      const s = statsOf(series[tid]);
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        `<td><span class="swatch" style="background:${colorOf(tid)}"></span>${nameOf(tid)}</td>` +
+        `<td>${fmt(s.latest.c)}</td>` +
+        `<td class="${s.dToday<0?"down":"up"}">${signed(s.dToday)}</td>` +
+        `<td class="${s.d24<0?"down":"up"}">${signed(s.d24)}</td>` +
+        `<td>${fmt(s.perHour)}/시간</td>`;
+      tbody.appendChild(tr);
+    }
+  }
+
+  function showCompare(){
+    $("dash").classList.add("hidden");
+    $("empty").classList.add("hidden");
+    $("compare").classList.remove("hidden");
+    $("titleName").textContent = "작품 비교";
+    document.title = "작품 비교 · 관심수 추적";
+    const lastT = Math.max(...withData.map(tid => series[tid][series[tid].length-1].t));
+    $("updatedAt").textContent = "마지막 기록 " + fmtTime(lastT);
+    drawCompare(); drawCompareTable();
+  }
+
+  // ---------- 선택 ----------
+  function select(tid){
+    setTab(tid);
+    if(tid === COMPARE) showCompare();
+    else showSingle(tid);
+  }
+
+  // 단일 뷰 기간 토글
   $("rangeBtns").addEventListener("click", e=>{
     const b = e.target.closest("button");
     if(!b) return;
@@ -478,9 +669,28 @@
     if(latest) drawTrend();
   });
 
-  // 시작: URL 해시(#titleId)로 북마크한 작품이 있으면 그 작품부터
-  const initial = order.includes(location.hash.slice(1)) ? location.hash.slice(1) : order[0];
-  select(initial);
+  // 비교 모드/기간 토글
+  $("cmpModeBtns").addEventListener("click", e=>{
+    const b = e.target.closest("button");
+    if(!b) return;
+    document.querySelectorAll("#cmpModeBtns button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+    cmpMode = b.dataset.mode;
+    drawCompare();
+  });
+  $("cmpRangeBtns").addEventListener("click", e=>{
+    const b = e.target.closest("button");
+    if(!b) return;
+    document.querySelectorAll("#cmpRangeBtns button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+    cmpRangeH = parseInt(b.dataset.h,10);
+    drawCompare();
+  });
+
+  // 시작: 해시 → #compare 또는 #titleId
+  const h = location.hash.slice(1);
+  if(h === "compare" && order.length > 1) select(COMPARE);
+  else select(order.includes(h) ? h : order[0]);
 })();
 </script>
 </body>
