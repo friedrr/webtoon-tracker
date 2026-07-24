@@ -134,32 +134,37 @@ def seconds_until_next_hour(now: datetime) -> float:
 
 def wait_or_yield(title_ids) -> bool:
     """
-    예약 실행의 행동 결정. 수집을 진행해야 하면 True, 물러나야 하면 False.
+    실행 출처별 행동 결정. 수집을 진행해야 하면 True, 물러나야 하면 False.
 
-    예약은 매시 :35, :45, :55 세 번 걸려 있고 규칙은 다음과 같다.
-    - 분 >= 30 에 시작: 정상 도착 → 다음 정각까지 대기 후 수집.
-    - 분 < 30 에 시작(지연으로 정각을 넘김):
-        * 이번 시간대 기록이 이미 있으면 → 다른 실행이 처리했으므로 종료.
-        * 없으면 → 늦었지만 즉시 수집(빠진 기록보다 늦은 기록이 낫다).
-    - 수동 실행(workflow_dispatch)은 테스트 목적이므로 즉시 수집.
+    - 외부 예약(cron-job.org)이 매시 :59에 workflow_dispatch(trigger=cron)로 깨움:
+        정각까지 잠깐(보통 1분 미만) 기다렸다가 수집 → 기록이 정각에 찍힘.
+        준비 과정이 밀려 정각을 살짝 넘겼으면 기다리지 않고 즉시 수집.
+    - GitHub 자체 예약(schedule)은 백업 역할:
+        이번 시간대 기록이 이미 있으면(외부 예약이 성공) 즉시 종료.
+        없으면(외부 예약 실패) 늦었지만 지금 수집해서 빈 칸을 메꿈.
+    - 수동 실행(Actions 탭의 Run workflow)은 테스트 목적이므로 즉시 수집.
     """
     event = os.environ.get("GITHUB_EVENT_NAME", "")
-    if event != "schedule":
-        print(f"[WAIT] 예약 실행이 아니므로({event or '로컬'}) 즉시 수집")
-        return True
-
+    mode = os.environ.get("TRIGGER_MODE", "")
     now = datetime.now(timezone.utc)
-    if now.minute >= 30:
+
+    if event == "workflow_dispatch" and mode == "cron":
         secs = seconds_until_next_hour(now)
-        print(f"[WAIT] {now:%H:%M:%S UTC} 시작 → 정각까지 {secs/60:.1f}분 대기")
-        time.sleep(secs)
+        if secs <= 300:
+            print(f"[WAIT] 외부 예약 도착({now:%H:%M:%S UTC}) → 정각까지 {secs:.0f}초 대기")
+            time.sleep(secs)
+        else:
+            print(f"[WAIT] 외부 예약이 정각을 넘겨 도착({now:%H:%M:%S UTC}) → 즉시 수집")
         return True
 
-    if all(already_recorded_this_hour(t, now) for t in title_ids):
-        print(f"[YIELD] {now:%H:%M UTC} — 이번 시간대는 이미 기록됨, 종료")
-        return False
+    if event == "schedule":
+        if all(already_recorded_this_hour(t, now) for t in title_ids):
+            print(f"[YIELD] 백업 실행({now:%H:%M UTC}) — 이번 시간대는 이미 기록됨, 종료")
+            return False
+        print(f"[BACKUP] 이번 시간대 기록 없음({now:%H:%M UTC}) → 백업 수집 진행")
+        return True
 
-    print(f"[WAIT] 정각을 지나 시작됨({now:%H:%M UTC}) → 밀린 기록 즉시 수집")
+    print(f"[WAIT] 수동/로컬 실행({event or '로컬'}) → 즉시 수집")
     return True
 
 
