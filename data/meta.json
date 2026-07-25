@@ -1,9 +1,10 @@
 {
-  "updatedAtUtc": "2026-07-25T13:00:00+00:00",
+  "updatedAtUtc": "2026-07-25T13:39:27+00:00",
   "titleOrder": [
     "851689",
     "852628",
-    "852601"
+    "852601",
+    "852765"
   ],
   "titles": {
     "851689": {
@@ -23,6 +24,12 @@
       "pageUrl": "https://comic.naver.com/webtoon/list?titleId=852601",
       "latestCount": 14910,
       "updatedAtUtc": "2026-07-25T13:00:00+00:00"
+    },
+    "852765": {
+      "titleName": "프롤로그에서 30년이 흘렀다",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=852765",
+      "latestCount": 761,
+      "updatedAtUtc": "2026-07-25T13:39:27+00:00"
     }
   }
 }
