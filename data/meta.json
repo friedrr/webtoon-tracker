@@ -1,10 +1,11 @@
 {
-  "updatedAtUtc": "2026-07-29T13:00:00+00:00",
+  "updatedAtUtc": "2026-07-29T13:35:03+00:00",
   "titleOrder": [
     "851689",
     "852628",
     "852601",
-    "852765"
+    "852765",
+    "852845"
   ],
   "titles": {
     "851689": {
@@ -30,6 +31,12 @@
       "pageUrl": "https://comic.naver.com/webtoon/list?titleId=852765",
       "latestCount": 29456,
       "updatedAtUtc": "2026-07-29T13:00:00+00:00"
+    },
+    "852845": {
+      "titleName": "전직지존",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=852845",
+      "latestCount": 547,
+      "updatedAtUtc": "2026-07-29T13:35:03+00:00"
     }
   }
 }
