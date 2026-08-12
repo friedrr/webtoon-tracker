@@ -127,6 +127,21 @@
   .chart-box.tall{height:340px}
   .mode-note{font-size:12.5px;color:var(--muted);margin-top:10px}
 
+  /* 날짜 이동 */
+  .day-nav{display:flex;gap:4px;align-items:center}
+  .day-nav select{
+    border:1px solid var(--line);background:transparent;color:var(--ink);
+    font:inherit;font-size:13px;padding:5px 10px;border-radius:999px;cursor:pointer;
+  }
+  .day-nav button{
+    border:1px solid var(--line);background:transparent;color:var(--muted);
+    font:inherit;font-size:12px;padding:5px 10px;border-radius:999px;cursor:pointer;
+  }
+  .day-nav button:hover:not(:disabled),.day-nav select:hover{border-color:var(--accent)}
+  .day-nav button:disabled{opacity:.35;cursor:default}
+  .day-nav button:focus-visible,.day-nav select:focus-visible{
+    outline:2px solid var(--accent);outline-offset:2px}
+
   /* 표 */
   table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
   th,td{padding:9px 6px;text-align:right;font-size:14px;border-bottom:1px solid var(--line)}
@@ -209,8 +224,16 @@
     </section>
 
     <section>
-      <div class="sec-head"><h2>시간별 증가량</h2></div>
+      <div class="sec-head">
+        <h2>시간별 증가량</h2>
+        <div class="day-nav">
+          <button type="button" id="dayPrev" aria-label="이전 날짜">◀</button>
+          <select id="daySelect" aria-label="날짜 선택"></select>
+          <button type="button" id="dayNext" aria-label="다음 날짜">▶</button>
+        </div>
+      </div>
       <div class="chart-box short"><canvas id="deltaChart"></canvas></div>
+      <div class="mode-note" id="deltaNote"></div>
     </section>
 
     <section>
@@ -478,21 +501,102 @@
     });
   }
 
-  function drawDelta(){
-    const deltas = [];
+  // ---- 시간별 증가량: 날짜 선택 ----
+  let dayOptions = [];        // ["recent", "2026-07-25", "2026-07-24", ...] 최신순
+  let daySel = "recent";
+
+  const kstHourOf = t => new Date(t + KST).getUTCHours();
+  const fmtDayLabel = key => {
+    const [y,m,d] = key.split("-").map(Number);
+    const wd = new Intl.DateTimeFormat("ko-KR",{timeZone:"Asia/Seoul",weekday:"short"})
+      .format(new Date(Date.UTC(y, m-1, d, 12)));
+    return `${m}.${d} (${wd})`;
+  };
+
+  function allDeltas(){
+    const out = [];
     for(let i=1;i<rows.length;i++){
-      deltas.push({t:rows[i].t, d:rows[i].c - rows[i-1].c});
+      out.push({t:rows[i].t, d:rows[i].c - rows[i-1].c});
     }
-    const recent = deltas.slice(-48);
+    return out;
+  }
+
+  function buildDaySelect(){
+    const dates = [...new Set(rows.map(r=>kstDateKey(r.t)))].sort().reverse();
+    dayOptions = ["recent", ...dates];
+    if(!dayOptions.includes(daySel)) daySel = "recent";
+    const sel = $("daySelect");
+    sel.innerHTML = "";
+    for(const opt of dayOptions){
+      const o = document.createElement("option");
+      o.value = opt;
+      o.textContent = opt === "recent" ? "최근 48시간" : fmtDayLabel(opt);
+      if(opt === daySel) o.selected = true;
+      sel.appendChild(o);
+    }
+    syncDayNav();
+  }
+
+  function syncDayNav(){
+    const i = dayOptions.indexOf(daySel);
+    // ◀ = 더 과거로(목록 아래쪽), ▶ = 더 최신으로(목록 위쪽)
+    $("dayPrev").disabled = i >= dayOptions.length - 1;
+    $("dayNext").disabled = i <= 0;
+  }
+
+  function drawDelta(){
     if(deltaChart) deltaChart.destroy();
+    const note = $("deltaNote");
+
+    if(daySel === "recent"){
+      const recent = allDeltas().slice(-48);
+      deltaChart = new Chart($("deltaChart"), {
+        type:"bar",
+        data:{
+          labels:recent.map(r=>fmtHour(r.t)),
+          rawTimes:recent.map(r=>r.t),
+          datasets:[{
+            data:recent.map(r=>r.d),
+            backgroundColor:recent.map(r=>r.d < 0 ? css("--warn") : css("--accent")),
+            borderRadius:3,
+          }]
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{
+            legend:{display:false},
+            tooltip:{callbacks:{
+              title:items=>fmtTime(recent[items[0].dataIndex].t),
+              label:c=>" 증가 " + signed(c.parsed.y)
+            }}
+          },
+          scales:{
+            x:{ticks:{maxTicksLimit:12, maxRotation:0}, grid:{display:false}},
+            y:{beginAtZero:true, ticks:{callback:v=>fmt(v)}, grid:{color:css("--line")}}
+          }
+        },
+        plugins:[dayGutter]
+      });
+      note.textContent = "";
+      return;
+    }
+
+    // 특정 날짜 모드: 그날 0시~23시(KST) 시간대별 증가량
+    const slots = Array(24).fill(null);
+    let total = 0, nRec = 0;
+    for(const r of allDeltas()){
+      if(kstDateKey(r.t) !== daySel) continue;
+      const h = kstHourOf(r.t);
+      slots[h] = (slots[h] ?? 0) + r.d;
+      total += r.d; nRec++;
+    }
     deltaChart = new Chart($("deltaChart"), {
       type:"bar",
       data:{
-        labels:recent.map(r=>fmtHour(r.t)),
-        rawTimes:recent.map(r=>r.t),
+        labels:[...Array(24).keys()].map(h=>h+"시"),
         datasets:[{
-          data:recent.map(r=>r.d),
-          backgroundColor:recent.map(r=>r.d < 0 ? css("--warn") : css("--accent")),
+          data:slots,
+          backgroundColor:slots.map(v=>(v??0) < 0 ? css("--warn") : css("--accent")),
           borderRadius:3,
         }]
       },
@@ -501,7 +605,7 @@
         plugins:{
           legend:{display:false},
           tooltip:{callbacks:{
-            title:items=>fmtTime(recent[items[0].dataIndex].t),
+            title:items=>`${fmtDayLabel(daySel)} ${items[0].label}`,
             label:c=>" 증가 " + signed(c.parsed.y)
           }}
         },
@@ -509,9 +613,12 @@
           x:{ticks:{maxTicksLimit:12, maxRotation:0}, grid:{display:false}},
           y:{beginAtZero:true, ticks:{callback:v=>fmt(v)}, grid:{color:css("--line")}}
         }
-      },
-      plugins:[dayGutter]
+      }
     });
+    note.textContent = nRec === 0
+      ? `${fmtDayLabel(daySel)} — 이 날짜에는 증가량 기록이 없습니다.`
+      : `${fmtDayLabel(daySel)} 총 증가 ${signed(total)} · 기록 ${nRec}회` +
+        (nRec < 24 ? " · 빈 시간대는 수집이 없었던 구간입니다" : "");
   }
 
   function drawTable(){
@@ -560,7 +667,7 @@
     chip.innerHTML = signed(s.d24) + " <small>지난 24시간</small>";
     chip.classList.toggle("down", s.d24 < 0);
 
-    drawTrend(); drawDelta(); drawTable();
+    drawTrend(); buildDaySelect(); drawDelta(); drawTable();
   }
 
   // ---------- 비교 뷰 ----------
@@ -667,6 +774,29 @@
     b.classList.add("on");
     rangeH = parseInt(b.dataset.h,10);
     if(latest) drawTrend();
+  });
+
+  // 시간별 증가량: 날짜 선택
+  $("daySelect").addEventListener("change", e=>{
+    daySel = e.target.value;
+    syncDayNav();
+    drawDelta();
+  });
+  $("dayPrev").addEventListener("click", ()=>{     // 더 과거로
+    const i = dayOptions.indexOf(daySel);
+    if(i < dayOptions.length - 1){
+      daySel = dayOptions[i+1];
+      $("daySelect").value = daySel;
+      syncDayNav(); drawDelta();
+    }
+  });
+  $("dayNext").addEventListener("click", ()=>{     // 더 최신으로
+    const i = dayOptions.indexOf(daySel);
+    if(i > 0){
+      daySel = dayOptions[i-1];
+      $("daySelect").value = daySel;
+      syncDayNav(); drawDelta();
+    }
   });
 
   // 비교 모드/기간 토글
