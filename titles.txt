@@ -8,3 +8,5 @@ https://comic.naver.com/webtoon/list?titleId=852601
 https://comic.naver.com/webtoon/list?titleId=852765
 https://comic.naver.com/webtoon/list?titleId=852845
 https://comic.naver.com/webtoon/list?titleId=853709
+https://comic.naver.com/webtoon/list?titleId=836848
+https://comic.naver.com/webtoon/list?titleId=849611
