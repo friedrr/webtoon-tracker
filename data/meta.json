@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-08-18T10:00:00+00:00",
+  "updatedAtUtc": "2026-08-18T10:48:47+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -8,7 +8,8 @@
     "852845",
     "853709",
     "836848",
-    "849611"
+    "849611",
+    "850211"
   ],
   "titles": {
     "851689": {
@@ -58,6 +59,12 @@
       "pageUrl": "https://comic.naver.com/webtoon/list?titleId=849611",
       "latestCount": 156390,
       "updatedAtUtc": "2026-08-18T10:00:00+00:00"
+    },
+    "850211": {
+      "titleName": "제물 투표",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=850211",
+      "latestCount": 79714,
+      "updatedAtUtc": "2026-08-18T10:48:47+00:00"
     }
   }
 }
