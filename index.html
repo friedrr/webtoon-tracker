@@ -401,7 +401,8 @@
           <input type="text" id="pName" placeholder="프로모션 이름 (예: 매일+ 무료, 기다무 전환)">
           <input type="datetime-local" id="pStart" title="시작">
           <span class="tilde">~</span>
-          <input type="datetime-local" id="pEnd" title="종료">
+          <input type="datetime-local" id="pEnd" title="종료 (모르면 비워두세요)">
+          <span class="mode-note" style="margin:0">종료 미정이면 비워두세요</span>
           <button type="button" id="pAdd">추가</button>
         </div>
 
@@ -526,7 +527,8 @@
       if(!pts || !pts.length || !promos.length) return;
       const {ctx, chartArea:a, scales:{x}} = chart;
       for(const p of promos){
-        const s = new Date(p.start).getTime(), e = new Date(p.end).getTime();
+        const s = new Date(p.start).getTime();
+        const e = p.end ? new Date(p.end).getTime() : pts[pts.length-1];
         if(!Number.isFinite(s) || !Number.isFinite(e) || e < s) continue;
         let i0 = null, i1 = null;
         for(let i=0;i<pts.length;i++){
@@ -1135,6 +1137,7 @@
   let editing = false;
 
   function fmtDT(s){ return s ? s.replace("T", " ") : "–"; }
+  function fmtDTEnd(s){ return s ? s.replace("T", " ") : "미정 (진행 중)"; }
 
   function renderInfo(){
     // 연재 요일
@@ -1168,7 +1171,7 @@
       tr.innerHTML =
         `<td>${p.name || "(이름 없음)"}</td>` +
         `<td>${fmtDT(p.start)}</td>` +
-        `<td>${fmtDT(p.end)}</td>`;
+        `<td>${fmtDTEnd(p.end)}</td>`;
       if(editing){
         const td = document.createElement("td");
         const del = document.createElement("button");
@@ -1209,8 +1212,8 @@
     const start = $("pStart").value;
     const end = $("pEnd").value;
     if(!name){ $("saveMsg").textContent = "프로모션 이름을 입력해 주세요."; return; }
-    if(!start || !end){ $("saveMsg").textContent = "시작/종료 일시를 모두 선택해 주세요."; return; }
-    if(end < start){ $("saveMsg").textContent = "종료가 시작보다 빠를 수 없어요."; return; }
+    if(!start){ $("saveMsg").textContent = "시작 일시를 선택해 주세요."; return; }
+    if(end && end < start){ $("saveMsg").textContent = "종료가 시작보다 빠를 수 없어요."; return; }
     const cur = anno[curTid] = anno[curTid] || {weekday:[], promos:[]};
     cur.promos = cur.promos || [];
     cur.promos.push({name, start, end});
