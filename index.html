@@ -199,6 +199,9 @@
     margin-right:7px;vertical-align:baseline;
   }
   .tbl-scroll{overflow-x:auto}
+  th.sortable{cursor:pointer;user-select:none;white-space:nowrap}
+  th.sortable:hover{color:var(--accent-deep)}
+  th.sortable.sorted{color:var(--ink);font-weight:700}
   #listBody tr{cursor:pointer}
   #listBody tr:hover td{background:#F6F8F7}
 
@@ -215,6 +218,24 @@
   .pager button:disabled{opacity:.35;cursor:default}
   .pager button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .pager .page-info{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  /* 비교 작품 선택 패널 */
+  .cmp-group{margin-bottom:12px}
+  .cmp-group-title{
+    font-size:12.5px;font-weight:700;color:var(--muted);
+    margin-bottom:6px;
+  }
+  .cmp-checks{display:flex;gap:5px;flex-wrap:wrap}
+  .cmp-checks .pill{
+    font-size:13px;border:1px solid var(--line);border-radius:999px;
+    padding:5px 13px;cursor:pointer;color:var(--muted);user-select:none;
+    background:var(--card);
+  }
+  .cmp-checks .pill:hover{border-color:var(--accent)}
+  .cmp-checks .pill.on{
+    background:var(--accent-deep);border-color:var(--accent-deep);
+    color:#fff;font-weight:600;
+  }
 
   /* 작품 정보 · 프로모션 */
   .info-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -448,6 +469,19 @@
 
       <section>
         <div class="sec-head">
+          <h2>비교할 작품 선택</h2>
+          <div class="btn-group">
+            <button type="button" id="cmpAll">전체 선택</button>
+            <button type="button" id="cmpNone">전체 해제</button>
+          </div>
+        </div>
+        <input type="search" id="cmpSearch" class="search" placeholder="작품명 검색해서 선택" autocomplete="off" style="margin-bottom:12px">
+        <div id="cmpGroups"></div>
+        <div class="mode-note" id="cmpSelCount"></div>
+      </section>
+
+      <section>
+        <div class="sec-head">
           <h2>작품 비교</h2>
           <div class="btn-group" id="cmpModeBtns" role="group" aria-label="비교 방식">
             <button data-mode="growth" class="on">증가량</button>
@@ -488,15 +522,30 @@
           <h2>수집 중인 작품</h2>
           <span class="mode-note" id="listCount" style="margin-top:0"></span>
         </div>
+        <div class="sec-head" style="margin-top:-4px">
+          <div class="btn-group" id="wdFilter" role="group" aria-label="연재 요일 필터">
+            <button data-wd="전체" class="on">전체</button>
+            <button data-wd="월">월</button>
+            <button data-wd="화">화</button>
+            <button data-wd="수">수</button>
+            <button data-wd="목">목</button>
+            <button data-wd="금">금</button>
+            <button data-wd="토">토</button>
+            <button data-wd="일">일</button>
+          </div>
+        </div>
         <div class="tbl-scroll">
           <table>
-            <thead><tr>
-              <th>작품명</th><th>연재 요일</th><th>현재 관심수</th><th>오늘 증가</th><th>24시간 증가</th>
+            <thead id="listHead"><tr>
+              <th>작품명</th><th>연재 요일</th>
+              <th class="sortable" data-sort="latest">현재 관심수</th>
+              <th class="sortable" data-sort="dToday">오늘 증가</th>
+              <th class="sortable" data-sort="d24">24시간 증가</th>
             </tr></thead>
             <tbody id="listBody"></tbody>
           </table>
         </div>
-        <div class="mode-note">작품을 누르면 상세 대시보드로 이동합니다.</div>
+        <div class="mode-note">작품을 누르면 상세 대시보드로 이동합니다. 숫자 컬럼 제목을 누르면 내림차순 ↓ / 오름차순 ↑ 으로 정렬됩니다.</div>
       </section>
     </div>
 
@@ -1027,17 +1076,98 @@
     drawTrend(); buildDaySelect(); drawDelta(); drawTable();
   }
 
+  // ---------- 비교 뷰: 작품 선택 ----------
+  const CMP_SEL_KEY = "webtoon_tracker_cmp_sel";
+  let cmpSel = new Set(order);   // 기본: 전체 선택
+  try{
+    const saved = JSON.parse(localStorage.getItem(CMP_SEL_KEY) || "null");
+    if(Array.isArray(saved)){
+      const valid = saved.filter(t => order.includes(t));
+      if(valid.length) cmpSel = new Set(valid);
+    }
+  }catch(e){}
+  function saveCmpSel(){
+    try{ localStorage.setItem(CMP_SEL_KEY, JSON.stringify([...cmpSel])); }catch(e){}
+  }
+
+  function renderCmpPicker(){
+    const q = norm($("cmpSearch").value);
+    // 요일별 그룹 구성 (여러 요일 연재작은 각 요일에 모두 표시, 미지정은 별도 그룹)
+    const groups = [];
+    for(const d of WEEKDAYS){
+      const tids = order.filter(tid => (annoOf(tid).weekday || []).includes(d));
+      if(tids.length) groups.push({label: d + "요일", tids});
+    }
+    const noWd = order.filter(tid => !(annoOf(tid).weekday || []).length);
+    if(noWd.length) groups.push({label: "요일 미지정", tids: noWd});
+
+    const wrap = $("cmpGroups");
+    wrap.innerHTML = "";
+    let anyShown = false;
+    for(const g of groups){
+      const shown = g.tids.filter(tid => !q || norm(nameOf(tid)).includes(q));
+      if(shown.length === 0) continue;
+      anyShown = true;
+      const div = document.createElement("div");
+      div.className = "cmp-group";
+      const title = document.createElement("div");
+      title.className = "cmp-group-title";
+      title.textContent = g.label;
+      const checks = document.createElement("div");
+      checks.className = "cmp-checks";
+      for(const tid of shown){
+        const pill = document.createElement("span");
+        pill.className = "pill" + (cmpSel.has(tid) ? " on" : "");
+        pill.textContent = nameOf(tid);
+        pill.setAttribute("role","checkbox");
+        pill.setAttribute("aria-checked", cmpSel.has(tid));
+        pill.addEventListener("click", ()=>{
+          if(cmpSel.has(tid)) cmpSel.delete(tid);
+          else cmpSel.add(tid);
+          saveCmpSel();
+          renderCmpPicker(); drawCompare(); drawCompareTable();
+        });
+        checks.appendChild(pill);
+      }
+      div.append(title, checks);
+      wrap.appendChild(div);
+    }
+    if(!anyShown){
+      const none = document.createElement("div");
+      none.className = "no-result";
+      none.textContent = "검색 결과가 없어요";
+      wrap.appendChild(none);
+    }
+    $("cmpSelCount").textContent = `${cmpSel.size}개 선택됨 / 총 ${order.length}개`;
+  }
+
+  $("cmpSearch").addEventListener("input", renderCmpPicker);
+  $("cmpAll").addEventListener("click", ()=>{
+    cmpSel = new Set(order);
+    saveCmpSel(); renderCmpPicker(); drawCompare(); drawCompareTable();
+  });
+  $("cmpNone").addEventListener("click", ()=>{
+    cmpSel = new Set();
+    saveCmpSel(); renderCmpPicker(); drawCompare(); drawCompareTable();
+  });
+
   // ---------- 비교 뷰 ----------
   let cmpChart = null;
   let cmpMode = "growth";
   let cmpRangeH = 72;
 
   function drawCompare(){
-    const now = Math.max(...withData.map(tid => series[tid][series[tid].length-1].t));
+    const picked = withData.filter(tid => cmpSel.has(tid));
+    if(picked.length === 0){
+      if(cmpChart){ cmpChart.destroy(); cmpChart = null; }
+      $("cmpNote").textContent = "위에서 비교할 작품을 선택해 주세요.";
+      return;
+    }
+    const now = Math.max(...picked.map(tid => series[tid][series[tid].length-1].t));
     const cut = cmpRangeH ? now - cmpRangeH*3600000 : 0;
 
     const datasets = [];
-    for(const tid of withData){
+    for(const tid of picked){
       const data = series[tid].filter(r=>r.t >= cut);
       if(data.length === 0) continue;
       const base = cmpMode === "growth" ? data[0].c : 0;
@@ -1090,7 +1220,8 @@
   function drawCompareTable(){
     const tbody = $("cmpBody");
     tbody.innerHTML = "";
-    const ranked = [...withData].sort((a,b)=>statsOf(series[b]).d24 - statsOf(series[a]).d24);
+    const ranked = withData.filter(tid => cmpSel.has(tid))
+      .sort((a,b)=>statsOf(series[b]).d24 - statsOf(series[a]).d24);
     for(const tid of ranked){
       const s = statsOf(series[tid]);
       const tr = document.createElement("tr");
@@ -1115,10 +1246,82 @@
     document.title = "작품 비교";
     const lastT = Math.max(...withData.map(tid => series[tid][series[tid].length-1].t));
     $("updatedAt").textContent = "마지막 기록 " + fmtTime(lastT);
-    drawCompare(); drawCompareTable();
+    renderCmpPicker(); drawCompare(); drawCompareTable();
   }
 
   // ---------- 전체 작품 리스트 뷰 ----------
+  let listWd = "전체";
+  let listSort = null;   // {key: "latest"|"dToday"|"d24", dir: -1(내림)|1(오름)}
+
+  function renderList(){
+    // 요일 필터
+    let tids = order.filter(tid => {
+      if(listWd === "전체") return true;
+      return (annoOf(tid).weekday || []).includes(listWd);
+    });
+
+    // 행 데이터 구성
+    const rowsData = tids.map(tid => {
+      if(series[tid].length === 0){
+        return {tid, wd: wdText(tid) || "–", empty: true, latest: null, dToday: null, d24: null};
+      }
+      const s = statsOf(series[tid]);
+      return {tid, wd: wdText(tid) || "–", empty: false,
+              latest: s.latest.c, dToday: s.dToday, d24: s.d24};
+    });
+
+    // 정렬 (데이터 없는 작품은 항상 맨 아래)
+    if(listSort){
+      const {key, dir} = listSort;
+      rowsData.sort((a,b)=>{
+        if(a.empty && b.empty) return 0;
+        if(a.empty) return 1;
+        if(b.empty) return -1;
+        return (a[key] - b[key]) * dir;
+      });
+    }
+
+    // 헤더 정렬 표시
+    $("listHead").querySelectorAll("th.sortable").forEach(th=>{
+      const base = th.textContent.replace(/[↓↑]\s*$/,"").trim();
+      if(listSort && th.dataset.sort === listSort.key){
+        th.textContent = base + (listSort.dir === -1 ? " ↓" : " ↑");
+        th.classList.add("sorted");
+      }else{
+        th.textContent = base;
+        th.classList.remove("sorted");
+      }
+    });
+
+    $("listCount").textContent = listWd === "전체"
+      ? `총 ${order.length}개`
+      : `${listWd}요일 ${rowsData.length}개 / 총 ${order.length}개`;
+
+    const tbody = $("listBody");
+    tbody.innerHTML = "";
+    if(rowsData.length === 0){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td colspan="5" style="text-align:center;color:var(--muted)">해당 요일에 연재하는 작품이 없어요</td>`;
+      tbody.appendChild(tr);
+      return;
+    }
+    for(const r of rowsData){
+      const tr = document.createElement("tr");
+      tr.dataset.tid = r.tid;
+      if(r.empty){
+        tr.innerHTML = `<td>${nameOf(r.tid)}</td><td>${r.wd}</td><td>–</td><td>–</td><td>–</td>`;
+      }else{
+        tr.innerHTML =
+          `<td>${nameOf(r.tid)}</td>` +
+          `<td>${r.wd}</td>` +
+          `<td>${fmt(r.latest)}</td>` +
+          `<td class="${r.dToday<0?"down":"up"}">${signed(r.dToday)}</td>` +
+          `<td class="${r.d24<0?"down":"up"}">${signed(r.d24)}</td>`;
+      }
+      tbody.appendChild(tr);
+    }
+  }
+
   function showList(){
     $("home").classList.add("hidden");
     $("weekdayBadge").classList.add("hidden");
@@ -1130,28 +1333,29 @@
     document.title = "수집 중인 작품";
     const lastT = Math.max(...withData.map(tid => series[tid][series[tid].length-1].t));
     $("updatedAt").textContent = "마지막 기록 " + fmtTime(lastT);
-    $("listCount").textContent = `총 ${order.length}개`;
-
-    const tbody = $("listBody");
-    tbody.innerHTML = "";
-    for(const tid of order){
-      const tr = document.createElement("tr");
-      tr.dataset.tid = tid;
-      const wd = wdText(tid) || "–";
-      if(series[tid].length === 0){
-        tr.innerHTML = `<td>${nameOf(tid)}</td><td>${wd}</td><td>–</td><td>–</td><td>–</td>`;
-      }else{
-        const s = statsOf(series[tid]);
-        tr.innerHTML =
-          `<td>${nameOf(tid)}</td>` +
-          `<td>${wd}</td>` +
-          `<td>${fmt(s.latest.c)}</td>` +
-          `<td class="${s.dToday<0?"down":"up"}">${signed(s.dToday)}</td>` +
-          `<td class="${s.d24<0?"down":"up"}">${signed(s.d24)}</td>`;
-      }
-      tbody.appendChild(tr);
-    }
+    renderList();
   }
+
+  $("wdFilter").addEventListener("click", e=>{
+    const b = e.target.closest("button");
+    if(!b) return;
+    document.querySelectorAll("#wdFilter button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+    listWd = b.dataset.wd;
+    renderList();
+  });
+
+  $("listHead").addEventListener("click", e=>{
+    const th = e.target.closest("th.sortable");
+    if(!th) return;
+    const key = th.dataset.sort;
+    if(listSort && listSort.key === key){
+      listSort.dir = -listSort.dir;          // 같은 컬럼 재클릭 → 방향 반전
+    }else{
+      listSort = {key, dir: -1};             // 새 컬럼 → 내림차순부터
+    }
+    renderList();
+  });
   $("listBody").addEventListener("click", e=>{
     const tr = e.target.closest("tr");
     if(!tr || !tr.dataset.tid) return;
