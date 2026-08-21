@@ -54,9 +54,12 @@
   .search::placeholder{color:var(--muted)}
   .search:focus{border-color:var(--accent)}
   nav#titleList{
-    display:flex;flex-direction:column;gap:4px;
-    overflow-y:auto;flex:1;min-height:0;
+    display:flex;flex-direction:column;gap:2px;
+    overflow-y:auto;max-height:320px;
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:6px;background:var(--card);
   }
+  nav#titleList.hidden{display:none}
   nav#titleList button{
     display:flex;justify-content:space-between;align-items:baseline;gap:8px;
     border:none;background:transparent;color:var(--ink);
@@ -70,16 +73,18 @@
     font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0}
   nav#titleList button.on .cnt{color:rgba(255,255,255,.75)}
   .no-result{font-size:13px;color:var(--muted);padding:8px 12px}
-  #compareLink{
-    border:none;background:transparent;color:var(--ink);
-    font:inherit;font-size:14.5px;font-weight:600;text-align:left;
-    padding:10px 12px;border-radius:10px;cursor:pointer;
-    border-top:1px solid var(--line);border-radius:0;padding-top:16px;
+  .side-actions{
+    display:flex;flex-direction:column;gap:2px;
+    border-top:1px solid var(--line);padding-top:12px;
   }
-  #compareLink:hover{color:var(--accent-deep)}
-  #compareLink:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  #compareLink.on{color:var(--accent-deep)}
-  #compareLink .arrow{display:inline-block;margin-right:6px;font-size:12px}
+  .side-actions button{
+    border:none;background:transparent;color:var(--ink);
+    font:inherit;font-size:14px;font-weight:600;text-align:left;
+    padding:9px 4px;cursor:pointer;
+  }
+  .side-actions button:hover{color:var(--accent-deep)}
+  .side-actions button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .side-actions button.on{color:var(--accent-deep)}
 
   main{min-width:0}
   header{
@@ -89,6 +94,11 @@
   h1{
     font-weight:700;letter-spacing:-.01em;
     font-size:clamp(22px,3.4vw,28px);line-height:1.3;
+  }
+  .head-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .wd-badge{
+    font-size:12.5px;font-weight:600;color:var(--accent-deep);
+    background:var(--soft);border-radius:999px;padding:4px 12px;
   }
   .updated{font-size:13px;color:var(--muted)}
 
@@ -185,6 +195,8 @@
     margin-right:7px;vertical-align:baseline;
   }
   .tbl-scroll{overflow-x:auto}
+  #listBody tr{cursor:pointer}
+  #listBody tr:hover td{background:#F6F8F7}
 
   /* 페이지네이션 */
   .pager{
@@ -199,6 +211,43 @@
   .pager button:disabled{opacity:.35;cursor:default}
   .pager button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .pager .page-info{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  /* 작품 정보 · 프로모션 */
+  .info-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .info-label{font-size:13px;color:var(--muted);min-width:76px}
+  .info-val{font-size:14px;font-weight:600}
+  .wd-checks{display:flex;gap:4px;flex-wrap:wrap}
+  .wd-checks label{
+    font-size:13px;border:1px solid var(--line);border-radius:999px;
+    padding:4px 11px;cursor:pointer;color:var(--muted);user-select:none;
+  }
+  .wd-checks input{display:none}
+  .wd-checks label.on{background:var(--accent-deep);border-color:var(--accent-deep);
+    color:#fff;font-weight:600}
+  .promo-form{
+    display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:12px;
+  }
+  .promo-form input{
+    border:1px solid var(--line);border-radius:8px;background:var(--card);
+    font:inherit;font-size:13px;padding:7px 10px;color:var(--ink);
+  }
+  .promo-form input[type="text"]{flex:1;min-width:180px}
+  .promo-form input:focus{outline:none;border-color:var(--accent)}
+  .promo-form .tilde{color:var(--muted)}
+  .promo-form button{
+    border:1px solid var(--line);background:transparent;color:var(--ink);
+    font:inherit;font-size:13px;padding:7px 14px;border-radius:8px;cursor:pointer;
+  }
+  .promo-form button:hover{border-color:var(--accent)}
+  .promo-form button.primary{
+    background:var(--accent-deep);border-color:var(--accent-deep);
+    color:#fff;font-weight:600;
+  }
+  .promo-del{
+    border:none;background:transparent;color:var(--warn);
+    font:inherit;font-size:12.5px;cursor:pointer;padding:2px 6px;
+  }
+  .save-area{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
 
   /* ===== 상태 메시지 ===== */
   .notice{
@@ -217,12 +266,8 @@
     aside{border-right:none;border-bottom:1px solid var(--line);
       padding-right:0;padding-bottom:14px}
     .side-inner{position:static;max-height:none}
-    nav#titleList{flex-direction:row;overflow-x:auto;overflow-y:hidden;
-      padding-bottom:4px}
-    nav#titleList button{flex-shrink:0;background:var(--card);
-      border:1px solid var(--line);border-radius:999px;padding:7px 14px}
-    nav#titleList button .cnt{display:none}
-    #compareLink{border-top:none;padding:4px 12px 0}
+    nav#titleList{max-height:240px}
+    .side-actions{padding-top:10px}
   }
 </style>
 </head>
@@ -233,16 +278,20 @@
     <div class="side-inner">
       <div class="eyebrow">Favorite Tracker</div>
       <input type="search" id="search" class="search" placeholder="작품명 검색" autocomplete="off">
-      <nav id="titleList" aria-label="작품 목록"></nav>
-      <button type="button" id="compareLink" class="hidden">
-        <span class="arrow">▶</span>작품별로 비교하기
-      </button>
+      <nav id="titleList" class="hidden" aria-label="작품 검색 결과"></nav>
+      <div class="side-actions">
+        <button type="button" id="compareLink">작품별로 비교하기</button>
+        <button type="button" id="listLink">수집 중인 작품 리스트 전부 보기</button>
+      </div>
     </div>
   </aside>
 
   <main>
     <header>
-      <h1 id="titleName"></h1>
+      <div class="head-left">
+        <h1 id="titleName"></h1>
+        <span class="wd-badge hidden" id="weekdayBadge"></span>
+      </div>
       <div class="updated" id="updatedAt"></div>
     </header>
 
@@ -322,6 +371,58 @@
         </div>
       </section>
 
+      <section id="infoSec">
+        <div class="sec-head">
+          <h2>작품 정보 · 프로모션</h2>
+          <div class="btn-group">
+            <button type="button" id="editToggle">편집</button>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">연재 요일</span>
+          <span id="wdRead" class="info-val">–</span>
+          <span id="wdEdit" class="wd-checks hidden"></span>
+        </div>
+
+        <div class="info-row" style="margin-top:14px">
+          <span class="info-label">프로모션 내역</span>
+        </div>
+        <table style="margin-top:6px">
+          <thead><tr>
+            <th>이름</th><th>시작</th><th>종료</th>
+            <th class="promo-del-col hidden"></th>
+          </tr></thead>
+          <tbody id="promoBody"></tbody>
+        </table>
+        <div class="mode-note hidden" id="promoEmpty">기록된 프로모션이 없습니다.</div>
+
+        <div id="promoForm" class="promo-form hidden">
+          <input type="text" id="pName" placeholder="프로모션 이름 (예: 매일+ 무료, 기다무 전환)">
+          <input type="datetime-local" id="pStart" title="시작">
+          <span class="tilde">~</span>
+          <input type="datetime-local" id="pEnd" title="종료">
+          <button type="button" id="pAdd">추가</button>
+        </div>
+
+        <div id="saveArea" class="save-area hidden">
+          <div id="tokenArea" class="hidden">
+            <div class="mode-note" style="margin:0 0 6px">
+              저장하려면 GitHub 토큰(Contents 읽기/쓰기 권한)이 필요해요. 한 번 등록하면 이 브라우저에 기억됩니다.
+            </div>
+            <div class="promo-form" style="margin-top:0">
+              <input type="password" id="tokenInput" placeholder="github_pat_... 토큰 붙여넣기">
+              <button type="button" id="tokenSave">토큰 등록</button>
+            </div>
+          </div>
+          <div class="promo-form" style="margin-top:10px">
+            <button type="button" id="annoSave" class="primary">저장소에 저장</button>
+            <span class="mode-note" id="saveMsg" style="margin:0"></span>
+            <button type="button" id="tokenClear" class="hidden">토큰 지우기</button>
+          </div>
+        </div>
+      </section>
+
     </div>
 
     <!-- ===== 비교 뷰 ===== -->
@@ -362,6 +463,25 @@
 
     </div>
 
+    <!-- ===== 전체 작품 리스트 뷰 ===== -->
+    <div id="listView" class="hidden">
+      <section>
+        <div class="sec-head">
+          <h2>수집 중인 작품</h2>
+          <span class="mode-note" id="listCount" style="margin-top:0"></span>
+        </div>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>작품명</th><th>연재 요일</th><th>현재 관심수</th><th>오늘 증가</th><th>24시간 증가</th>
+            </tr></thead>
+            <tbody id="listBody"></tbody>
+          </table>
+        </div>
+        <div class="mode-note">작품을 누르면 상세 대시보드로 이동합니다.</div>
+      </section>
+    </div>
+
     <footer>매시간 자동 수집 · GitHub Actions + GitHub Pages</footer>
   </main>
 </div>
@@ -372,6 +492,7 @@
   const fmt = n => n.toLocaleString("ko-KR");
   const KST = 9*3600*1000;
   const COMPARE = "__compare__";
+  const LIST = "__list__";
 
   const kstDateKey = t => {
     const d = new Date(t + KST);
@@ -395,6 +516,36 @@
   Chart.defaults.color = css("--muted");
 
   const PALETTE = ["#069A57","#4C5FD5","#E2604A","#C98A1B","#8455C9","#1793A6","#C24C86","#5E7212"];
+
+  // 프로모션 기간 음영 (추이 차트용)
+  const promoBands = {
+    id:"promoBands",
+    beforeDatasetsDraw(chart){
+      const pts = chart.data.rawTimes;
+      const promos = chart.options.promoList || [];
+      if(!pts || !pts.length || !promos.length) return;
+      const {ctx, chartArea:a, scales:{x}} = chart;
+      for(const p of promos){
+        const s = new Date(p.start).getTime(), e = new Date(p.end).getTime();
+        if(!Number.isFinite(s) || !Number.isFinite(e) || e < s) continue;
+        let i0 = null, i1 = null;
+        for(let i=0;i<pts.length;i++){
+          if(i0 === null && pts[i] >= s) i0 = i;
+          if(pts[i] <= e) i1 = i;
+        }
+        if(i0 === null || i1 === null || i1 < i0) continue;
+        const x0 = x.getPixelForValue(i0), x1 = x.getPixelForValue(i1);
+        ctx.save();
+        ctx.fillStyle = "rgba(6,154,87,0.09)";
+        ctx.fillRect(x0, a.top, Math.max(x1-x0, 2), a.bottom-a.top);
+        ctx.fillStyle = css("--accent-deep");
+        ctx.font = '10.5px "Pretendard", sans-serif';
+        ctx.textAlign = "left";
+        ctx.fillText(p.name || "프로모션", x0+4, a.bottom-6);
+        ctx.restore();
+      }
+    }
+  };
 
   // 시그니처: 자정(KST)마다 컷 경계선 (category 축용)
   const dayGutter = {
@@ -484,6 +635,21 @@
   await Promise.all(order.map(async tid => { series[tid] = await loadCsv(tid); }));
   const withData = order.filter(tid => series[tid].length > 0);
 
+  // ---- 작품 부가 정보(연재 요일·프로모션): data/annotations.json ----
+  let anno = {};
+  try{
+    const r = await fetch("data/annotations.json", {cache:"no-store"});
+    if(r.ok) anno = await r.json();
+  }catch(e){}
+  const WEEKDAYS = ["월","화","수","목","금","토","일"];
+  const annoOf = tid => anno[tid] || {weekday:[], promos:[]};
+  const wdText = tid => {
+    const w = (annoOf(tid).weekday || []).filter(x=>WEEKDAYS.includes(x));
+    return w.length ? w.join("·") : "";
+  };
+  const promosOf = tid => (annoOf(tid).promos || [])
+    .slice().sort((a,b)=>(b.start||"").localeCompare(a.start||""));
+
   if(withData.length === 0){
     $("empty").classList.remove("hidden");
     return;
@@ -492,17 +658,21 @@
   const nameOf = tid => (titles[tid] && titles[tid].titleName) || tid;
   const colorOf = tid => PALETTE[order.indexOf(tid) % PALETTE.length];
 
+  const atOf = rows => cutoff => {
+    let v = null;
+    for(const r of rows){ if(r.t <= cutoff) v = r; else break; }
+    return v;
+  };
+  // "그날 0시" 기준값: 0시 정각(±5분 이내) 기록을 우선, 없으면 그 이전 마지막 기록
+  const dayBaseOf = (rows, dayStart) => atOf(rows)(dayStart + 5*60*1000);
+
   function statsOf(rows){
     const latest = rows[rows.length-1];
-    const at = cutoff => {
-      let v = null;
-      for(const r of rows){ if(r.t <= cutoff) v = r; else break; }
-      return v;
-    };
+    const at = atOf(rows);
     const d = new Date(latest.t + KST);
     const dayStart = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - KST;
     const base24 = at(latest.t - 24*3600*1000) || rows[0];
-    const baseDay = at(dayStart) || rows[0];
+    const baseDay = dayBaseOf(rows, dayStart) || rows[0];
     const d24 = latest.c - base24.c;
     const spanH = Math.max((latest.t - base24.t)/3600000, 1);
     return {
@@ -528,21 +698,29 @@
   }
   listEl.addEventListener("click", e=>{
     const b = e.target.closest("button");
-    if(!b || b.classList.contains("on")) return;
-    location.hash = b.dataset.tid;
-    select(b.dataset.tid);
+    if(!b) return;
+    goTo(b.dataset.tid);
   });
 
-  $("search").addEventListener("input", e=>{
-    const q = e.target.value.trim().toLowerCase();
-    let shown = 0;
+  // 검색: 공백 무시 + 부분 일치. norm("내가 죽인") === norm("내가죽인")
+  const norm = s => s.toLowerCase().replace(/\s+/g, "");
+  const matchesOf = q => {
+    const nq = norm(q);
+    return nq ? order.filter(tid => norm(nameOf(tid)).includes(nq)) : [];
+  };
+
+  function renderSearchResults(q){
+    const hits = matchesOf(q);
+    if(!norm(q)){
+      listEl.classList.add("hidden");
+      return hits;
+    }
+    listEl.classList.remove("hidden");
     listEl.querySelectorAll("button").forEach(b=>{
-      const hit = !q || b.firstChild.textContent.toLowerCase().includes(q);
-      b.classList.toggle("hidden", !hit);
-      if(hit) shown++;
+      b.classList.toggle("hidden", !hits.includes(b.dataset.tid));
     });
     let empty = listEl.querySelector(".no-result");
-    if(shown === 0){
+    if(hits.length === 0){
       if(!empty){
         empty = document.createElement("div");
         empty.className = "no-result";
@@ -552,20 +730,43 @@
     }else if(empty){
       empty.remove();
     }
+    return hits;
+  }
+
+  function goTo(tid){
+    $("search").value = "";
+    listEl.classList.add("hidden");
+    location.hash = tid;
+    select(tid);
+  }
+
+  $("search").addEventListener("input", e=>{
+    renderSearchResults(e.target.value);
   });
 
-  if(order.length > 1){
-    $("compareLink").classList.remove("hidden");
-    $("compareLink").addEventListener("click", ()=>{
-      location.hash = "compare";
-      select(COMPARE);
-    });
-  }
+  // 엔터: 결과가 하나면 그 작품으로 바로 이동, 여럿이면 목록에서 고르게 유지
+  $("search").addEventListener("keydown", e=>{
+    if(e.key !== "Enter" || e.isComposing) return;
+    e.preventDefault();
+    const hits = renderSearchResults(e.target.value);
+    if(hits.length === 1) goTo(hits[0]);
+  });
+
+  $("compareLink").addEventListener("click", ()=>{
+    location.hash = "compare";
+    select(COMPARE);
+  });
+  if(order.length <= 1) $("compareLink").classList.add("hidden");
+  $("listLink").addEventListener("click", ()=>{
+    location.hash = "list";
+    select(LIST);
+  });
 
   function setActive(tid){
     listEl.querySelectorAll("button").forEach(b=>
       b.classList.toggle("on", b.dataset.tid === tid));
     $("compareLink").classList.toggle("on", tid === COMPARE);
+    $("listLink").classList.toggle("on", tid === LIST);
   }
 
   // ---------- 단일 작품 뷰 ----------
@@ -603,8 +804,10 @@
           y:{grace:"5%", ticks:{callback:v=>fmt(v)}, grid:{color:css("--line")}}
         }
       },
-      plugins:[dayGutter]
+      plugins:[dayGutter, promoBands]
     });
+    trendChart.options.promoList = promosOf(curTid);
+    trendChart.update("none");
   }
 
   // ---- 시간별 증가량: 날짜 선택 ----
@@ -729,8 +932,10 @@
     dailyRows = [];
     for(let i=days.length-1; i>=0; i--){
       const [date, close] = days[i];
-      const prevClose = i>0 ? days[i-1][1] : null;
-      dailyRows.push({date, close, diff: prevClose === null ? null : close - prevClose});
+      const [y,m,d] = date.split("-").map(Number);
+      const dayStart = Date.UTC(y, m-1, d) - KST;
+      const base = i>0 ? dayBaseOf(rows, dayStart) : null;   // 첫날은 기준 없음
+      dailyRows.push({date, close, diff: base ? close - base.c : null});
     }
   }
 
@@ -755,8 +960,12 @@
     $("pageNext").disabled = page >= totalPages;
   }
 
+  let curTid = null;
+
   function showSingle(tid){
+    curTid = tid;
     $("compare").classList.add("hidden");
+    $("listView").classList.add("hidden");
     rows = series[tid] || [];
     const name = nameOf(tid);
     $("titleName").textContent = name;
@@ -782,8 +991,13 @@
     chip.innerHTML = signed(s.d24) + " <small>지난 24시간</small>";
     chip.classList.toggle("down", s.d24 < 0);
 
+    const wt = wdText(tid);
+    $("weekdayBadge").textContent = wt ? "연재 " + wt : "";
+    $("weekdayBadge").classList.toggle("hidden", !wt);
+
     page = 1;
     buildDaily();
+    renderInfo();
     drawTrend(); buildDaySelect(); drawDelta(); drawTable();
   }
 
@@ -865,8 +1079,10 @@
   }
 
   function showCompare(){
+    $("weekdayBadge").classList.add("hidden");
     $("dash").classList.add("hidden");
     $("empty").classList.add("hidden");
+    $("listView").classList.add("hidden");
     $("compare").classList.remove("hidden");
     $("titleName").textContent = "작품 비교";
     document.title = "작품 비교";
@@ -875,10 +1091,207 @@
     drawCompare(); drawCompareTable();
   }
 
+  // ---------- 전체 작품 리스트 뷰 ----------
+  function showList(){
+    $("weekdayBadge").classList.add("hidden");
+    $("dash").classList.add("hidden");
+    $("compare").classList.add("hidden");
+    $("empty").classList.add("hidden");
+    $("listView").classList.remove("hidden");
+    $("titleName").textContent = "수집 중인 작품";
+    document.title = "수집 중인 작품";
+    const lastT = Math.max(...withData.map(tid => series[tid][series[tid].length-1].t));
+    $("updatedAt").textContent = "마지막 기록 " + fmtTime(lastT);
+    $("listCount").textContent = `총 ${order.length}개`;
+
+    const tbody = $("listBody");
+    tbody.innerHTML = "";
+    for(const tid of order){
+      const tr = document.createElement("tr");
+      tr.dataset.tid = tid;
+      const wd = wdText(tid) || "–";
+      if(series[tid].length === 0){
+        tr.innerHTML = `<td>${nameOf(tid)}</td><td>${wd}</td><td>–</td><td>–</td><td>–</td>`;
+      }else{
+        const s = statsOf(series[tid]);
+        tr.innerHTML =
+          `<td>${nameOf(tid)}</td>` +
+          `<td>${wd}</td>` +
+          `<td>${fmt(s.latest.c)}</td>` +
+          `<td class="${s.dToday<0?"down":"up"}">${signed(s.dToday)}</td>` +
+          `<td class="${s.d24<0?"down":"up"}">${signed(s.d24)}</td>`;
+      }
+      tbody.appendChild(tr);
+    }
+  }
+  $("listBody").addEventListener("click", e=>{
+    const tr = e.target.closest("tr");
+    if(!tr || !tr.dataset.tid) return;
+    location.hash = tr.dataset.tid;
+    select(tr.dataset.tid);
+  });
+
+  // ---------- 작품 정보 편집(요일·프로모션) + 저장소 저장 ----------
+  let editing = false;
+
+  function fmtDT(s){ return s ? s.replace("T", " ") : "–"; }
+
+  function renderInfo(){
+    // 연재 요일
+    const w = annoOf(curTid).weekday || [];
+    $("wdRead").textContent = w.length ? w.join(" · ") : "–";
+    const wdEdit = $("wdEdit");
+    wdEdit.innerHTML = "";
+    for(const d of WEEKDAYS){
+      const lab = document.createElement("label");
+      lab.textContent = d;
+      lab.classList.toggle("on", w.includes(d));
+      lab.addEventListener("click", ()=>{
+        const cur = anno[curTid] = anno[curTid] || {weekday:[], promos:[]};
+        cur.weekday = cur.weekday || [];
+        const i = cur.weekday.indexOf(d);
+        if(i >= 0) cur.weekday.splice(i, 1);
+        else cur.weekday = WEEKDAYS.filter(x => cur.weekday.includes(x) || x === d);
+        renderInfo();
+      });
+      wdEdit.appendChild(lab);
+    }
+    $("wdRead").classList.toggle("hidden", editing);
+    wdEdit.classList.toggle("hidden", !editing);
+
+    // 프로모션 목록
+    const promos = promosOf(curTid);
+    const tbody = $("promoBody");
+    tbody.innerHTML = "";
+    for(const p of promos){
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        `<td>${p.name || "(이름 없음)"}</td>` +
+        `<td>${fmtDT(p.start)}</td>` +
+        `<td>${fmtDT(p.end)}</td>`;
+      if(editing){
+        const td = document.createElement("td");
+        const del = document.createElement("button");
+        del.type = "button"; del.className = "promo-del"; del.textContent = "삭제";
+        del.addEventListener("click", ()=>{
+          const cur = anno[curTid];
+          if(!cur || !cur.promos) return;
+          const i = cur.promos.indexOf(p);
+          if(i >= 0) cur.promos.splice(i, 1);
+          renderInfo(); drawTrend();
+        });
+        td.style.textAlign = "right";
+        td.appendChild(del);
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+    $("promoEmpty").classList.toggle("hidden", promos.length > 0);
+    document.querySelectorAll(".promo-del-col").forEach(el=>
+      el.classList.toggle("hidden", !editing));
+
+    // 편집 요소 표시
+    $("promoForm").classList.toggle("hidden", !editing);
+    $("saveArea").classList.toggle("hidden", !editing);
+    $("editToggle").textContent = editing ? "편집 닫기" : "편집";
+    $("editToggle").classList.toggle("on", editing);
+    syncTokenUI();
+  }
+
+  $("editToggle").addEventListener("click", ()=>{
+    editing = !editing;
+    $("saveMsg").textContent = "";
+    renderInfo();
+  });
+
+  $("pAdd").addEventListener("click", ()=>{
+    const name = $("pName").value.trim();
+    const start = $("pStart").value;
+    const end = $("pEnd").value;
+    if(!name){ $("saveMsg").textContent = "프로모션 이름을 입력해 주세요."; return; }
+    if(!start || !end){ $("saveMsg").textContent = "시작/종료 일시를 모두 선택해 주세요."; return; }
+    if(end < start){ $("saveMsg").textContent = "종료가 시작보다 빠를 수 없어요."; return; }
+    const cur = anno[curTid] = anno[curTid] || {weekday:[], promos:[]};
+    cur.promos = cur.promos || [];
+    cur.promos.push({name, start, end});
+    $("pName").value = ""; $("pStart").value = ""; $("pEnd").value = "";
+    $("saveMsg").textContent = "추가됐어요. 아래 '저장소에 저장'을 눌러야 기록이 남아요.";
+    renderInfo(); drawTrend();
+  });
+
+  // ---- GitHub 저장 ----
+  const TOKEN_KEY = "webtoon_tracker_token";
+  function getToken(){ try{ return localStorage.getItem(TOKEN_KEY) || ""; }catch(e){ return ""; } }
+  function syncTokenUI(){
+    const has = !!getToken();
+    $("tokenArea").classList.toggle("hidden", has);
+    $("tokenClear").classList.toggle("hidden", !has);
+  }
+  $("tokenSave").addEventListener("click", ()=>{
+    const v = $("tokenInput").value.trim();
+    if(!v){ $("saveMsg").textContent = "토큰을 붙여넣어 주세요."; return; }
+    try{ localStorage.setItem(TOKEN_KEY, v); }catch(e){}
+    $("tokenInput").value = "";
+    $("saveMsg").textContent = "토큰이 등록됐어요.";
+    syncTokenUI();
+  });
+  $("tokenClear").addEventListener("click", ()=>{
+    try{ localStorage.removeItem(TOKEN_KEY); }catch(e){}
+    $("saveMsg").textContent = "토큰을 지웠어요.";
+    syncTokenUI();
+  });
+
+  function repoPath(){
+    // https://<owner>.github.io/<repo>/ 에서 owner/repo 추론
+    const owner = location.hostname.split(".")[0];
+    const repo = location.pathname.split("/").filter(Boolean)[0] || "";
+    return {owner, repo};
+  }
+
+  $("annoSave").addEventListener("click", async ()=>{
+    const token = getToken();
+    if(!token){
+      $("saveMsg").textContent = "먼저 위에서 토큰을 등록해 주세요.";
+      syncTokenUI(); return;
+    }
+    const {owner, repo} = repoPath();
+    if(!owner || !repo){
+      $("saveMsg").textContent = "주소에서 저장소를 알 수 없어요. 배포된 대시보드에서 저장해 주세요.";
+      return;
+    }
+    const api = `https://api.github.com/repos/${owner}/${repo}/contents/data/annotations.json`;
+    const headers = {
+      "Authorization": "Bearer " + token,
+      "Accept": "application/vnd.github+json",
+    };
+    $("saveMsg").textContent = "저장 중...";
+    try{
+      let sha;
+      const g = await fetch(api, {headers});
+      if(g.ok) sha = (await g.json()).sha;
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(anno, null, 2))));
+      const body = {message: "작품 정보/프로모션 업데이트", content};
+      if(sha) body.sha = sha;
+      const p = await fetch(api, {method:"PUT", headers, body: JSON.stringify(body)});
+      if(p.ok){
+        $("saveMsg").textContent = "저장 완료! 다른 기기에서는 1~2분 뒤 반영돼요.";
+      }else if(p.status === 401 || p.status === 403){
+        $("saveMsg").textContent = `저장 실패(${p.status}): 토큰 권한(Contents 읽기/쓰기)을 확인해 주세요.`;
+      }else if(p.status === 409){
+        $("saveMsg").textContent = "저장 실패(충돌): 새로고침 후 다시 시도해 주세요.";
+      }else{
+        $("saveMsg").textContent = `저장 실패(${p.status}). 잠시 후 다시 시도해 주세요.`;
+      }
+    }catch(e){
+      $("saveMsg").textContent = "저장 실패: 네트워크 오류. 다시 시도해 주세요.";
+    }
+  });
+
   // ---------- 선택 ----------
   function select(tid){
     setActive(tid);
     if(tid === COMPARE) showCompare();
+    else if(tid === LIST) showList();
     else showSingle(tid);
   }
 
@@ -949,6 +1362,7 @@
   // 시작: 해시 → #compare 또는 #titleId
   const h = location.hash.slice(1);
   if(h === "compare" && order.length > 1) select(COMPARE);
+  else if(h === "list") select(LIST);
   else select(order.includes(h) ? h : order[0]);
 })();
 </script>
