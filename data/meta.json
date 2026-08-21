@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-08-21T10:00:00+00:00",
+  "updatedAtUtc": "2026-08-21T10:21:02+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -9,7 +9,74 @@
     "853709",
     "836848",
     "849611",
-    "850211"
+    "850211",
+    "851688",
+    "840014",
+    "758037",
+    "844058",
+    "851687",
+    "796075",
+    "832703",
+    "822657",
+    "833702",
+    "849510",
+    "828715",
+    "783053",
+    "832557",
+    "730656",
+    "789979",
+    "848349",
+    "843116",
+    "769209",
+    "816809",
+    "717481",
+    "838002",
+    "846109",
+    "850214",
+    "821321",
+    "804862",
+    "750184",
+    "847135",
+    "747271",
+    "776255",
+    "800770",
+    "746857",
+    "836052",
+    "837486",
+    "783888",
+    "822640",
+    "829875",
+    "762279",
+    "828294",
+    "641253",
+    "776601",
+    "773797",
+    "820097",
+    "851642",
+    "844063",
+    "751168",
+    "808389",
+    "845002",
+    "850499",
+    "816798",
+    "832677",
+    "807777",
+    "730694",
+    "650305",
+    "798182",
+    "846883",
+    "772853",
+    "792651",
+    "822114",
+    "849279",
+    "848075",
+    "848000",
+    "839568",
+    "840687",
+    "832566",
+    "835119",
+    "852761",
+    "845508"
   ],
   "titles": {
     "851689": {
@@ -65,6 +132,408 @@
       "pageUrl": "https://comic.naver.com/webtoon/list?titleId=850211",
       "latestCount": 95490,
       "updatedAtUtc": "2026-08-21T10:00:00+00:00"
+    },
+    "851688": {
+      "titleName": "청부입학",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=851688",
+      "latestCount": 113446,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "840014": {
+      "titleName": "샤MONEY즘",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=840014",
+      "latestCount": 393147,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "758037": {
+      "titleName": "참교육",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=758037",
+      "latestCount": 1064974,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "844058": {
+      "titleName": "신체",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=844058",
+      "latestCount": 214833,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "851687": {
+      "titleName": "계속 써도 돈이 쌓임",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=851687",
+      "latestCount": 95316,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "796075": {
+      "titleName": "절대검감",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=796075",
+      "latestCount": 319956,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "832703": {
+      "titleName": "시한부 천재가 살아남는 법",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=832703",
+      "latestCount": 240596,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "822657": {
+      "titleName": "환생천마",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=822657",
+      "latestCount": 269885,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "833702": {
+      "titleName": "파브르 in 사천당가",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=833702",
+      "latestCount": 179976,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "849510": {
+      "titleName": "변경백의 10클래스 망나니",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=849510",
+      "latestCount": 122973,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "828715": {
+      "titleName": "절대회귀",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=828715",
+      "latestCount": 442607,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "783053": {
+      "titleName": "김부장",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=783053",
+      "latestCount": 809429,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "832557": {
+      "titleName": "회귀한 용병은 다 계획이 있다",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=832557",
+      "latestCount": 272159,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "730656": {
+      "titleName": "사신소년",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=730656",
+      "latestCount": 691554,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "789979": {
+      "titleName": "멸망 이후의 세계",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=789979",
+      "latestCount": 458622,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "848349": {
+      "titleName": "양치기 마법사",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=848349",
+      "latestCount": 139221,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "843116": {
+      "titleName": "포그랜드",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=843116",
+      "latestCount": 183626,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "769209": {
+      "titleName": "화산귀환",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=769209",
+      "latestCount": 1743563,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "816809": {
+      "titleName": "별을 품은 소드마스터",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=816809",
+      "latestCount": 522566,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "717481": {
+      "titleName": "일렉시드",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=717481",
+      "latestCount": 611266,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "838002": {
+      "titleName": "종말이 찾아왔다",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=838002",
+      "latestCount": 340490,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "846109": {
+      "titleName": "싸이코패스 in 무림",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=846109",
+      "latestCount": 98198,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "850214": {
+      "titleName": "좋아하면 멍청해진다",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=850214",
+      "latestCount": 151784,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "821321": {
+      "titleName": "1등급 싸움과외",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=821321",
+      "latestCount": 274695,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "804862": {
+      "titleName": "백XX",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=804862",
+      "latestCount": 466822,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "750184": {
+      "titleName": "나쁜사람",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=750184",
+      "latestCount": 426884,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "847135": {
+      "titleName": "쪽팔려게임",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=847135",
+      "latestCount": 400422,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "747271": {
+      "titleName": "나노마신",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=747271",
+      "latestCount": 779185,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "776255": {
+      "titleName": "천마육성",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=776255",
+      "latestCount": 328055,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "800770": {
+      "titleName": "재벌집 막내아들",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=800770",
+      "latestCount": 368605,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "746857": {
+      "titleName": "무사만리행",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=746857",
+      "latestCount": 287692,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "836052": {
+      "titleName": "마흔 즈음에",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=836052",
+      "latestCount": 188510,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "837486": {
+      "titleName": "풍작이에요, 마왕님!",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=837486",
+      "latestCount": 197607,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "783888": {
+      "titleName": "현실퀘스트",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=783888",
+      "latestCount": 447266,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "822640": {
+      "titleName": "소꿉친구 컴플렉스",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=822640",
+      "latestCount": 641203,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "829875": {
+      "titleName": "사시미 한 자루로 아카데미를 씹어먹음",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=829875",
+      "latestCount": 193748,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "762279": {
+      "titleName": "정글쥬스",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=762279",
+      "latestCount": 529794,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "828294": {
+      "titleName": "작두",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=828294",
+      "latestCount": 555122,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "641253": {
+      "titleName": "외모지상주의",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=641253",
+      "latestCount": 2480440,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "776601": {
+      "titleName": "광마회귀",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=776601",
+      "latestCount": 652791,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "773797": {
+      "titleName": "나 혼자 만렙 뉴비",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=773797",
+      "latestCount": 736492,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "820097": {
+      "titleName": "아카데미에서 살아남기",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=820097",
+      "latestCount": 311799,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "851642": {
+      "titleName": "반로환동한 천마의 마경방송",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=851642",
+      "latestCount": 64101,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "844063": {
+      "titleName": "악당들의 후원자가 되었다",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=844063",
+      "latestCount": 208773,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "751168": {
+      "titleName": "상남자",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=751168",
+      "latestCount": 389894,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "808389": {
+      "titleName": "나 혼자 탑에서 농사",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=808389",
+      "latestCount": 368087,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "845002": {
+      "titleName": "마왕인데 용사가 너무 많음",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=845002",
+      "latestCount": 142925,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "850499": {
+      "titleName": "검술명가의 네크로맨서",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=850499",
+      "latestCount": 114598,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "816798": {
+      "titleName": "킬러 배드로",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=816798",
+      "latestCount": 643397,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "832677": {
+      "titleName": "절대군림",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=832677",
+      "latestCount": 383679,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "807777": {
+      "titleName": "마도전생기",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=807777",
+      "latestCount": 354122,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "730694": {
+      "titleName": "초인의 시대",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=730694",
+      "latestCount": 579382,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "650305": {
+      "titleName": "호랑이형님",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=650305",
+      "latestCount": 921029,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "798182": {
+      "titleName": "디펜스 게임의 폭군이 되었다",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=798182",
+      "latestCount": 280473,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "846883": {
+      "titleName": "만취남녀",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=846883",
+      "latestCount": 113251,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "772853": {
+      "titleName": "나태 공자, 노력 천재 되다",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=772853",
+      "latestCount": 329960,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "792651": {
+      "titleName": "99강화나무몽둥이",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=792651",
+      "latestCount": 565813,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "822114": {
+      "titleName": "짜장 한 그릇에 제갈세가 데릴사위",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=822114",
+      "latestCount": 104998,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "849279": {
+      "titleName": "너만 보인단 말이야",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=849279",
+      "latestCount": 173394,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "848075": {
+      "titleName": "부활소년",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=848075",
+      "latestCount": 154344,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "848000": {
+      "titleName": "범죄도시0",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=848000",
+      "latestCount": 183204,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "839568": {
+      "titleName": "권왕환생",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=839568",
+      "latestCount": 202086,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "840687": {
+      "titleName": "태존비록",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=840687",
+      "latestCount": 168113,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "832566": {
+      "titleName": "2회차 환관이 남성을 되찾음",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=832566",
+      "latestCount": 191144,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "835119": {
+      "titleName": "축구천재로 오해받는 중입니다",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=835119",
+      "latestCount": 156701,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "852761": {
+      "titleName": "인간의 식탁",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=852761",
+      "latestCount": 54502,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
+    },
+    "845508": {
+      "titleName": "하남자의 탑 공략법",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=845508",
+      "latestCount": 115996,
+      "updatedAtUtc": "2026-08-21T10:21:02+00:00"
     }
   }
 }
