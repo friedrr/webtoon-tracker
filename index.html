@@ -219,6 +219,16 @@
   .pager button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .pager .page-info{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 
+  /* 접기/펼치기 헤더 */
+  .fold-head{
+    display:flex;align-items:center;gap:8px;
+    border:none;background:transparent;padding:0;cursor:pointer;
+    font-family:inherit;color:inherit;
+  }
+  .fold-head:hover .fold-arrow,.fold-head:hover h2{color:var(--accent-deep)}
+  .fold-head:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .fold-arrow{font-size:11px;color:var(--muted)}
+
   /* 비교 작품 선택 패널 */
   .cmp-group{margin-bottom:12px}
   .cmp-group-title{
@@ -469,14 +479,19 @@
 
       <section>
         <div class="sec-head">
-          <h2>비교할 작품 선택</h2>
-          <div class="btn-group">
+          <button type="button" class="fold-head" id="cmpFold" aria-expanded="true">
+            <h2>비교할 작품 선택</h2>
+            <span class="fold-arrow" id="cmpFoldArrow">▲</span>
+          </button>
+          <div class="btn-group" id="cmpSelBtns">
             <button type="button" id="cmpAll">전체 선택</button>
             <button type="button" id="cmpNone">전체 해제</button>
           </div>
         </div>
-        <input type="search" id="cmpSearch" class="search" placeholder="작품명 검색해서 선택" autocomplete="off" style="margin-bottom:12px">
-        <div id="cmpGroups"></div>
+        <div id="cmpPickerBody">
+          <input type="search" id="cmpSearch" class="search" placeholder="작품명 검색해서 선택" autocomplete="off" style="margin-bottom:12px">
+          <div id="cmpGroups"></div>
+        </div>
         <div class="mode-note" id="cmpSelCount"></div>
       </section>
 
@@ -1138,8 +1153,29 @@
       none.textContent = "검색 결과가 없어요";
       wrap.appendChild(none);
     }
-    $("cmpSelCount").textContent = `${cmpSel.size}개 선택됨 / 총 ${order.length}개`;
+    updateSelCount();
   }
+
+  // 선택 패널 접기/펼치기 (상태는 브라우저에 기억)
+  const CMP_FOLD_KEY = "webtoon_tracker_cmp_fold";
+  let cmpFolded = false;
+  try{ cmpFolded = localStorage.getItem(CMP_FOLD_KEY) === "1"; }catch(e){}
+  function applyFold(){
+    $("cmpPickerBody").classList.toggle("hidden", cmpFolded);
+    $("cmpSelBtns").classList.toggle("hidden", cmpFolded);
+    $("cmpFoldArrow").textContent = cmpFolded ? "▼" : "▲";
+    $("cmpFold").setAttribute("aria-expanded", String(!cmpFolded));
+    updateSelCount();
+  }
+  function updateSelCount(){
+    const base = `${cmpSel.size}개 선택됨 / 총 ${order.length}개`;
+    $("cmpSelCount").textContent = cmpFolded ? base + " · 제목을 누르면 펼쳐져요" : base;
+  }
+  $("cmpFold").addEventListener("click", ()=>{
+    cmpFolded = !cmpFolded;
+    try{ localStorage.setItem(CMP_FOLD_KEY, cmpFolded ? "1" : "0"); }catch(e){}
+    applyFold();
+  });
 
   $("cmpSearch").addEventListener("input", renderCmpPicker);
   $("cmpAll").addEventListener("click", ()=>{
@@ -1246,7 +1282,7 @@
     document.title = "작품 비교";
     const lastT = Math.max(...withData.map(tid => series[tid][series[tid].length-1].t));
     $("updatedAt").textContent = "마지막 기록 " + fmtTime(lastT);
-    renderCmpPicker(); drawCompare(); drawCompareTable();
+    renderCmpPicker(); applyFold(); drawCompare(); drawCompareTable();
   }
 
   // ---------- 전체 작품 리스트 뷰 ----------
