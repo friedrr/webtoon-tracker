@@ -45,7 +45,11 @@
   .eyebrow{
     font-size:11px;letter-spacing:.16em;color:var(--ink);
     text-transform:uppercase;font-weight:600;
+    border:none;background:transparent;font-family:inherit;
+    text-align:left;padding:0;cursor:pointer;
   }
+  .eyebrow:hover{color:var(--accent-deep)}
+  .eyebrow:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .search{
     border:1px solid var(--line);background:var(--card);color:var(--ink);
     font:inherit;font-size:14px;padding:9px 16px;border-radius:999px;
@@ -276,7 +280,7 @@
 
   <aside>
     <div class="side-inner">
-      <div class="eyebrow">Favorite Tracker</div>
+      <button type="button" class="eyebrow" id="homeLink">Favorite Tracker</button>
       <input type="search" id="search" class="search" placeholder="작품명 검색" autocomplete="off">
       <nav id="titleList" class="hidden" aria-label="작품 검색 결과"></nav>
       <div class="side-actions">
@@ -294,6 +298,14 @@
       </div>
       <div class="updated" id="updatedAt"></div>
     </header>
+
+    <!-- ===== 메인 홈 ===== -->
+    <div id="home" class="hidden">
+      <div class="notice" style="text-align:left">
+        <strong>Favorite Tracker</strong>
+        네이버웹툰의 작품들 관심수 수집 기록을 대시보드 형태로 정리하여 보여줍니다.
+      </div>
+    </div>
 
     <div id="empty" class="notice hidden">
       <strong>아직 수집된 데이터가 없어요</strong>
@@ -499,6 +511,7 @@
   const KST = 9*3600*1000;
   const COMPARE = "__compare__";
   const LIST = "__list__";
+  const HOME = "__home__";
 
   const kstDateKey = t => {
     const d = new Date(t + KST);
@@ -769,6 +782,10 @@
     location.hash = "list";
     select(LIST);
   });
+  $("homeLink").addEventListener("click", ()=>{
+    location.hash = "";
+    select(HOME);
+  });
 
   function setActive(tid){
     listEl.querySelectorAll("button").forEach(b=>
@@ -972,6 +989,7 @@
 
   function showSingle(tid){
     curTid = tid;
+    $("home").classList.add("hidden");
     $("compare").classList.add("hidden");
     $("listView").classList.add("hidden");
     rows = series[tid] || [];
@@ -1087,6 +1105,7 @@
   }
 
   function showCompare(){
+    $("home").classList.add("hidden");
     $("weekdayBadge").classList.add("hidden");
     $("dash").classList.add("hidden");
     $("empty").classList.add("hidden");
@@ -1101,6 +1120,7 @@
 
   // ---------- 전체 작품 리스트 뷰 ----------
   function showList(){
+    $("home").classList.add("hidden");
     $("weekdayBadge").classList.add("hidden");
     $("dash").classList.add("hidden");
     $("compare").classList.add("hidden");
@@ -1297,11 +1317,27 @@
     }
   });
 
+  // ---------- 메인 홈 ----------
+  function showHome(){
+    $("weekdayBadge").classList.add("hidden");
+    $("dash").classList.add("hidden");
+    $("compare").classList.add("hidden");
+    $("listView").classList.add("hidden");
+    $("empty").classList.add("hidden");
+    $("home").classList.remove("hidden");
+    $("titleName").textContent = "";
+    document.title = "대시보드";
+    const lastT = withData.length
+      ? Math.max(...withData.map(tid => series[tid][series[tid].length-1].t)) : null;
+    $("updatedAt").textContent = lastT ? "마지막 기록 " + fmtTime(lastT) : "";
+  }
+
   // ---------- 선택 ----------
   function select(tid){
     setActive(tid);
     if(tid === COMPARE) showCompare();
     else if(tid === LIST) showList();
+    else if(tid === HOME) showHome();
     else showSingle(tid);
   }
 
@@ -1373,7 +1409,8 @@
   const h = location.hash.slice(1);
   if(h === "compare" && order.length > 1) select(COMPARE);
   else if(h === "list") select(LIST);
-  else select(order.includes(h) ? h : order[0]);
+  else if(order.includes(h)) select(h);
+  else select(HOME);
 })();
 </script>
 </body>
