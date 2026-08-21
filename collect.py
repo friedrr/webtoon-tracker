@@ -68,6 +68,69 @@ def find_key(obj, key):
     return None
 
 
+# 연재 요일 자동 인식용
+ENG_TO_KOR = {
+    "MONDAY": "월", "TUESDAY": "화", "WEDNESDAY": "수", "THURSDAY": "목",
+    "FRIDAY": "금", "SATURDAY": "토", "SUNDAY": "일",
+    "MON": "월", "TUE": "화", "WED": "수", "THU": "목",
+    "FRI": "금", "SAT": "토", "SUN": "일",
+}
+KOR_ORDER = ["월", "화", "수", "목", "금", "토", "일"]
+
+
+def extract_weekdays(data, raw_text=""):
+    """
+    API 응답(dict) 또는 HTML 원문에서 연재 요일을 최대한 찾아 ["화"] 형태로 반환.
+    실패하면 빈 리스트 (수동 등록으로 보완 가능).
+    """
+    days = set()
+
+    # 1) publishDayOfWeekList 같은 요일 목록 키
+    for key in ("publishDayOfWeekList", "publishDayOfWeek", "weekday", "weekdays"):
+        v = find_key(data, key) if data is not None else None
+        if v is None:
+            continue
+        items = v if isinstance(v, list) else [v]
+        for it in items:
+            s = str(it).upper()
+            if s == "DAILY":
+                return list(KOR_ORDER)  # 매일 연재
+            if s in ENG_TO_KOR:
+                days.add(ENG_TO_KOR[s])
+            elif str(it) in KOR_ORDER:
+                days.add(str(it))
+        if days:
+            break
+
+    # 2) publishDescription 등 설명 문자열에서 "X요일" 패턴
+    if not days:
+        texts = []
+        if data is not None:
+            for key in ("publishDescription", "publishInfo", "dayInfo"):
+                v = find_key(data, key)
+                if isinstance(v, str):
+                    texts.append(v)
+        if raw_text:
+            m = re.search(r'"publishDayOfWeekList"\s*:\s*\[([^\]]*)\]', raw_text)
+            if m:
+                texts.append(m.group(1))
+            m = re.search(r'"publishDescription"\s*:\s*"((?:[^"\\]|\\.)*)"', raw_text)
+            if m:
+                texts.append(m.group(1))
+        for t in texts:
+            up = t.upper()
+            if "DAILY" in up or "매일" in t:
+                return list(KOR_ORDER)
+            for eng, kor in ENG_TO_KOR.items():
+                if eng in up:
+                    days.add(kor)
+            for kor in KOR_ORDER:
+                if f"{kor}요일" in t or f"매주 {kor}" in t:
+                    days.add(kor)
+
+    return [d for d in KOR_ORDER if d in days]
+
+
 def load_title_ids():
     """titles.txt 에서 titleId 목록을 읽음. URL을 붙여넣어도 숫자만 추출."""
     if not TITLES_PATH.exists():
@@ -98,7 +161,7 @@ def fetch_favorite_count(title_id: str):
         fav = find_key(data, "favoriteCount")
         name = find_key(data, "titleName")
         if fav is not None:
-            return int(fav), (str(name) if name else None)
+            return int(fav), (str(name) if name else None), extract_weekdays(data)
         errors.append("API 응답에 favoriteCount 키가 없음")
     except Exception as e:
         errors.append(f"API 요청 실패: {e!r}")
@@ -116,7 +179,7 @@ def fetch_favorite_count(title_id: str):
                     name = json.loads(f'"{mn.group(1)}"')
                 except Exception:
                     name = mn.group(1)
-            return fav, name
+            return fav, name, extract_weekdays(None, html)
         errors.append("페이지 HTML에서 favoriteCount 패턴을 찾지 못함")
     except Exception as e:
         errors.append(f"페이지 요청 실패: {e!r}")
@@ -227,7 +290,7 @@ def main():
                 print(f"[SKIP] {tid}  이 시간대 기록이 이미 있음 (중복 방지)")
                 ok.append(tid)
                 continue
-            fav, name = fetch_favorite_count(tid)
+            fav, name, weekdays = fetch_favorite_count(tid)
             append_record(tid, now, fav)
             prev = titles_meta.get(tid, {})
             titles_meta[tid] = {
@@ -235,6 +298,7 @@ def main():
                 "pageUrl": page_url(tid),
                 "latestCount": fav,
                 "updatedAtUtc": now.isoformat(),
+                "weekdays": weekdays or prev.get("weekdays") or [],
             }
             ok.append(tid)
             print(f"[OK] {tid}  favoriteCount={fav}  title={name or '(미확인)'}")

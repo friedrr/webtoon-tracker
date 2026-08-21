@@ -728,8 +728,16 @@
   }catch(e){}
   const WEEKDAYS = ["월","화","수","목","금","토","일"];
   const annoOf = tid => anno[tid] || {weekday:[], promos:[]};
+  // 유효 연재 요일: 직접 등록(annotations)이 우선, 없으면 수집기가 자동 인식한 값(meta)
+  const weekdaysOf = tid => {
+    const manual = (annoOf(tid).weekday || []).filter(x=>WEEKDAYS.includes(x));
+    if(manual.length) return manual;
+    const auto = ((titles[tid] || {}).weekdays || []).filter(x=>WEEKDAYS.includes(x));
+    return auto;
+  };
+  const wdIsAuto = tid => !(annoOf(tid).weekday || []).length && weekdaysOf(tid).length > 0;
   const wdText = tid => {
-    const w = (annoOf(tid).weekday || []).filter(x=>WEEKDAYS.includes(x));
+    const w = weekdaysOf(tid);
     return w.length ? w.join("·") : "";
   };
   const promosOf = tid => (annoOf(tid).promos || [])
@@ -1110,10 +1118,10 @@
     // 요일별 그룹 구성 (여러 요일 연재작은 각 요일에 모두 표시, 미지정은 별도 그룹)
     const groups = [];
     for(const d of WEEKDAYS){
-      const tids = order.filter(tid => (annoOf(tid).weekday || []).includes(d));
+      const tids = order.filter(tid => weekdaysOf(tid).includes(d));
       if(tids.length) groups.push({label: d + "요일", tids});
     }
-    const noWd = order.filter(tid => !(annoOf(tid).weekday || []).length);
+    const noWd = order.filter(tid => !weekdaysOf(tid).length);
     if(noWd.length) groups.push({label: "요일 미지정", tids: noWd});
 
     const wrap = $("cmpGroups");
@@ -1293,7 +1301,7 @@
     // 요일 필터
     let tids = order.filter(tid => {
       if(listWd === "전체") return true;
-      return (annoOf(tid).weekday || []).includes(listWd);
+      return weekdaysOf(tid).includes(listWd);
     });
 
     // 행 데이터 구성
@@ -1406,9 +1414,12 @@
   function fmtDTEnd(s){ return s ? s.replace("T", " ") : "미정 (진행 중)"; }
 
   function renderInfo(){
-    // 연재 요일
+    // 연재 요일 (표시는 유효 요일, 편집은 직접 등록값)
+    const eff = weekdaysOf(curTid);
     const w = annoOf(curTid).weekday || [];
-    $("wdRead").textContent = w.length ? w.join(" · ") : "–";
+    $("wdRead").textContent = eff.length
+      ? eff.join(" · ") + (wdIsAuto(curTid) ? " (자동 인식)" : "")
+      : "–";
     const wdEdit = $("wdEdit");
     wdEdit.innerHTML = "";
     for(const d of WEEKDAYS){
