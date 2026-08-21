@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-08-21T12:00:00+00:00",
+  "updatedAtUtc": "2026-08-21T12:22:06+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -76,7 +76,8 @@
     "832566",
     "835119",
     "852761",
-    "845508"
+    "845508",
+    "852571"
   ],
   "titles": {
     "851689": {
@@ -761,6 +762,15 @@
       "updatedAtUtc": "2026-08-21T12:00:00+00:00",
       "weekdays": [
         "일"
+      ]
+    },
+    "852571": {
+      "titleName": "고블린 주식회사",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=852571",
+      "latestCount": 21838,
+      "updatedAtUtc": "2026-08-21T12:22:06+00:00",
+      "weekdays": [
+        "월"
       ]
     }
   }
