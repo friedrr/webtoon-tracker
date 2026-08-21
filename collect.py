@@ -161,7 +161,14 @@ def fetch_favorite_count(title_id: str):
         fav = find_key(data, "favoriteCount")
         name = find_key(data, "titleName")
         if fav is not None:
-            return int(fav), (str(name) if name else None), extract_weekdays(data)
+            wd = extract_weekdays(data)
+            if not wd:
+                # API 응답에 요일이 없으면 작품 페이지 HTML에서 한 번 더 시도
+                try:
+                    wd = extract_weekdays(None, http_get(referer, referer))
+                except Exception:
+                    wd = []
+            return int(fav), (str(name) if name else None), wd
         errors.append("API 응답에 favoriteCount 키가 없음")
     except Exception as e:
         errors.append(f"API 요청 실패: {e!r}")
@@ -287,7 +294,20 @@ def main():
     for tid in title_ids:
         try:
             if already_recorded_this_hour(tid, now):
-                print(f"[SKIP] {tid}  이 시간대 기록이 이미 있음 (중복 방지)")
+                prev = titles_meta.get(tid, {})
+                if prev.get("weekdays"):
+                    print(f"[SKIP] {tid}  이 시간대 기록이 이미 있음 (중복 방지)")
+                    ok.append(tid)
+                    continue
+                # 관심수는 이미 기록됐지만 요일 정보가 없으면 메타만 보강
+                _, name, weekdays = fetch_favorite_count(tid)
+                titles_meta[tid] = {
+                    **prev,
+                    "titleName": name or prev.get("titleName"),
+                    "pageUrl": page_url(tid),
+                    "weekdays": weekdays or [],
+                }
+                print(f"[META] {tid}  요일 보강: {weekdays or '(인식 실패)'}")
                 ok.append(tid)
                 continue
             fav, name, weekdays = fetch_favorite_count(tid)
@@ -301,7 +321,8 @@ def main():
                 "weekdays": weekdays or prev.get("weekdays") or [],
             }
             ok.append(tid)
-            print(f"[OK] {tid}  favoriteCount={fav}  title={name or '(미확인)'}")
+            wd_txt = "/".join(weekdays) if weekdays else "(요일 인식 실패)"
+            print(f"[OK] {tid}  favoriteCount={fav}  title={name or '(미확인)'}  요일={wd_txt}")
         except Exception as e:
             failed.append(tid)
             print(f"[FAIL] {tid}  {e}", file=sys.stderr)
