@@ -227,9 +227,9 @@
   .promo-form{
     display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:12px;
   }
-  .promo-form input{
+  .promo-form input,.promo-form select{
     border:1px solid var(--line);border-radius:8px;background:var(--card);
-    font:inherit;font-size:13px;padding:7px 10px;color:var(--ink);
+    font:inherit;font-size:13px;padding:7px 10px;color:var(--ink);cursor:pointer;
   }
   .promo-form input[type="text"]{flex:1;min-width:180px}
   .promo-form input:focus{outline:none;border-color:var(--accent)}
@@ -390,7 +390,7 @@
         </div>
         <table style="margin-top:6px">
           <thead><tr>
-            <th>이름</th><th>시작</th><th>종료</th>
+            <th>이름</th><th>타깃</th><th>시작</th><th>종료</th>
             <th class="promo-del-col hidden"></th>
           </tr></thead>
           <tbody id="promoBody"></tbody>
@@ -399,6 +399,11 @@
 
         <div id="promoForm" class="promo-form hidden">
           <input type="text" id="pName" placeholder="프로모션 이름 (예: 매일+ 무료, 기다무 전환)">
+          <select id="pTarget" title="타깃 성별">
+            <option value="남성">타깃: 남성</option>
+            <option value="여성">타깃: 여성</option>
+            <option value="모두">타깃: 모두</option>
+          </select>
           <input type="datetime-local" id="pStart" title="시작">
           <span class="tilde">~</span>
           <input type="datetime-local" id="pEnd" title="종료 (모르면 비워두세요)">
@@ -543,7 +548,8 @@
         ctx.fillStyle = css("--accent-deep");
         ctx.font = '10.5px "Pretendard", sans-serif';
         ctx.textAlign = "left";
-        ctx.fillText(p.name || "프로모션", x0+4, a.bottom-6);
+        const label = (p.name || "프로모션") + (p.target ? ` (${p.target})` : "");
+        ctx.fillText(label, x0+4, a.bottom-6);
         ctx.restore();
       }
     }
@@ -1170,6 +1176,7 @@
       const tr = document.createElement("tr");
       tr.innerHTML =
         `<td>${p.name || "(이름 없음)"}</td>` +
+        `<td>${p.target || "–"}</td>` +
         `<td>${fmtDT(p.start)}</td>` +
         `<td>${fmtDTEnd(p.end)}</td>`;
       if(editing){
@@ -1216,7 +1223,7 @@
     if(end && end < start){ $("saveMsg").textContent = "종료가 시작보다 빠를 수 없어요."; return; }
     const cur = anno[curTid] = anno[curTid] || {weekday:[], promos:[]};
     cur.promos = cur.promos || [];
-    cur.promos.push({name, start, end});
+    cur.promos.push({name, target: $("pTarget").value, start, end});
     $("pName").value = ""; $("pStart").value = ""; $("pEnd").value = "";
     $("saveMsg").textContent = "추가됐어요. 아래 '저장소에 저장'을 눌러야 기록이 남아요.";
     renderInfo(); drawTrend();
