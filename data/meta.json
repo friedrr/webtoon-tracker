@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-08-25T23:00:00+00:00",
+  "updatedAtUtc": "2026-08-25T23:55:44+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -77,7 +77,8 @@
     "835119",
     "852761",
     "845508",
-    "852571"
+    "852571",
+    "853833"
   ],
   "titles": {
     "851689": {
@@ -771,6 +772,15 @@
       "updatedAtUtc": "2026-08-25T23:00:00+00:00",
       "weekdays": [
         "월"
+      ]
+    },
+    "853833": {
+      "titleName": "해일주의보",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=853833",
+      "latestCount": 13378,
+      "updatedAtUtc": "2026-08-25T23:55:44+00:00",
+      "weekdays": [
+        "수"
       ]
     }
   }
