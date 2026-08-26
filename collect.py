@@ -215,6 +215,10 @@ def wait_or_yield(title_ids) -> bool:
     - 수동 실행(Actions 탭의 Run workflow)은 테스트 목적이므로 즉시 수집.
     """
     event = os.environ.get("GITHUB_EVENT_NAME", "")
+    if os.environ.get("SKIP_WAIT") == "1":
+        # 푸시 충돌 재시도 중 재수집: 이미 정각이 지났으므로 기다리지 않음
+        print("[WAIT] 재시도 재수집 → 즉시 수집")
+        return True
     mode = os.environ.get("TRIGGER_MODE", "")
     now = datetime.now(timezone.utc)
 
