@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-08-26T00:00:00+00:00",
+  "updatedAtUtc": "2026-08-26T00:18:04+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -78,7 +78,8 @@
     "852761",
     "845508",
     "852571",
-    "853833"
+    "853833",
+    "852503"
   ],
   "titles": {
     "851689": {
@@ -779,6 +780,15 @@
       "pageUrl": "https://comic.naver.com/webtoon/list?titleId=853833",
       "latestCount": 13454,
       "updatedAtUtc": "2026-08-26T00:00:00+00:00",
+      "weekdays": [
+        "수"
+      ]
+    },
+    "852503": {
+      "titleName": "원더랜드",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=852503",
+      "latestCount": 6406,
+      "updatedAtUtc": "2026-08-26T00:18:04+00:00",
       "weekdays": [
         "수"
       ]
