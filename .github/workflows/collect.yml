@@ -38,16 +38,34 @@ jobs:
         run: python collect.py
 
       - name: 데이터 커밋 및 푸시
+        env:
+          TRIGGER_MODE: ${{ inputs.trigger }}
         run: |
+          set -e
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # 대기하는 동안 다른 커밋이 생겼을 수 있으므로 먼저 최신화
-          git pull --rebase origin ${GITHUB_REF_NAME} || true
-          git add data/
-          if git diff --cached --quiet; then
-            echo "변경 사항 없음 - 커밋 생략"
-          else
+
+          # 데이터 파일은 시간순으로 줄만 늘어나므로, 원격이 앞서 있으면
+          # "원격 최신 상태로 맞춘 뒤 이번 수집을 다시 얹는다"가 항상 정답.
+          # (collect.py 는 같은 시간대 기록이 이미 있으면 스스로 건너뜀)
+          for i in 1 2 3 4 5; do
+            git add data/
+            if git diff --cached --quiet; then
+              echo "변경 사항 없음 - 종료"
+              exit 0
+            fi
             git commit -m "data: $(date -u +'%Y-%m-%d %H:%M') UTC"
-            git pull --rebase origin ${GITHUB_REF_NAME}
-            git push
-          fi
+
+            if git push origin HEAD:${GITHUB_REF_NAME}; then
+              echo "푸시 성공 (시도 $i)"
+              exit 0
+            fi
+
+            echo "원격이 앞서 있습니다 - 최신 상태로 맞춘 뒤 다시 시도 (시도 $i)"
+            git fetch origin ${GITHUB_REF_NAME}
+            git reset --hard origin/${GITHUB_REF_NAME}
+            sleep $((i * 3))
+            SKIP_WAIT=1 python collect.py || true
+          done
+          echo "여러 번 시도했지만 푸시하지 못했습니다."
+          exit 1
