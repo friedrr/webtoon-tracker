@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-08-28T09:00:00+00:00",
+  "updatedAtUtc": "2026-08-28T09:26:51+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -79,7 +79,8 @@
     "845508",
     "852571",
     "853833",
-    "852503"
+    "852503",
+    "854126"
   ],
   "titles": {
     "851689": {
@@ -791,6 +792,15 @@
       "updatedAtUtc": "2026-08-28T09:00:00+00:00",
       "weekdays": [
         "수"
+      ]
+    },
+    "854126": {
+      "titleName": "까맣지만 새하얀",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=854126",
+      "latestCount": 17988,
+      "updatedAtUtc": "2026-08-28T09:26:51+00:00",
+      "weekdays": [
+        "목"
       ]
     }
   }
