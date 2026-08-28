@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-08-28T10:00:00+00:00",
+  "updatedAtUtc": "2026-08-28T10:56:04+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -80,7 +80,8 @@
     "852571",
     "853833",
     "852503",
-    "854126"
+    "854126",
+    "853278"
   ],
   "titles": {
     "851689": {
@@ -799,6 +800,15 @@
       "pageUrl": "https://comic.naver.com/webtoon/list?titleId=854126",
       "latestCount": 18252,
       "updatedAtUtc": "2026-08-28T10:00:00+00:00",
+      "weekdays": [
+        "목"
+      ]
+    },
+    "853278": {
+      "titleName": "나의 경험",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=853278",
+      "latestCount": 38114,
+      "updatedAtUtc": "2026-08-28T10:56:04+00:00",
       "weekdays": [
         "목"
       ]
