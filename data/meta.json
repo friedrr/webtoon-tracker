@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-09-14T13:00:00+00:00",
+  "updatedAtUtc": "2026-09-14T13:38:45+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -84,7 +84,8 @@
     "853278",
     "853943",
     "854402",
-    "854589"
+    "854589",
+    "821597"
   ],
   "titles": {
     "851689": {
@@ -841,6 +842,15 @@
       "updatedAtUtc": "2026-09-14T13:00:00+00:00",
       "weekdays": [
         "수"
+      ]
+    },
+    "821597": {
+      "titleName": "괴력 난신",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=821597",
+      "latestCount": 514602,
+      "updatedAtUtc": "2026-09-14T13:38:45+00:00",
+      "weekdays": [
+        "화"
       ]
     }
   }
