@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-09-16T13:00:00+00:00",
+  "updatedAtUtc": "2026-09-16T13:48:43+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -85,7 +85,8 @@
     "853943",
     "854402",
     "854589",
-    "821597"
+    "821597",
+    "854580"
   ],
   "titles": {
     "851689": {
@@ -851,6 +852,15 @@
       "updatedAtUtc": "2026-09-16T13:00:00+00:00",
       "weekdays": [
         "화"
+      ]
+    },
+    "854580": {
+      "titleName": "세계멸망전",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=854580",
+      "latestCount": 591,
+      "updatedAtUtc": "2026-09-16T13:48:43+00:00",
+      "weekdays": [
+        "목"
       ]
     }
   }
