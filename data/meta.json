@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-09-19T14:00:00+00:00",
+  "updatedAtUtc": "2026-09-19T14:10:59+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -87,7 +87,8 @@
     "854589",
     "821597",
     "854580",
-    "855035"
+    "855035",
+    "854122"
   ],
   "titles": {
     "851689": {
@@ -871,6 +872,15 @@
       "updatedAtUtc": "2026-09-19T14:00:00+00:00",
       "weekdays": [
         "토"
+      ]
+    },
+    "854122": {
+      "titleName": "용사의 발라드",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=854122",
+      "latestCount": 1921,
+      "updatedAtUtc": "2026-09-19T14:10:59+00:00",
+      "weekdays": [
+        "일"
       ]
     }
   }
