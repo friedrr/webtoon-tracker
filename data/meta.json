@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-09-24T13:00:00+00:00",
+  "updatedAtUtc": "2026-09-24T13:27:19+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -88,7 +88,9 @@
     "821597",
     "854580",
     "855035",
-    "854122"
+    "854122",
+    "853535",
+    "854335"
   ],
   "titles": {
     "851689": {
@@ -881,6 +883,24 @@
       "updatedAtUtc": "2026-09-24T13:00:00+00:00",
       "weekdays": [
         "일"
+      ]
+    },
+    "853535": {
+      "titleName": "공주는 용의 뱃속에",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=853535",
+      "latestCount": 253,
+      "updatedAtUtc": "2026-09-24T13:27:19+00:00",
+      "weekdays": [
+        "금"
+      ]
+    },
+    "854335": {
+      "titleName": "에러 디 에코",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=854335",
+      "latestCount": 260,
+      "updatedAtUtc": "2026-09-24T13:27:19+00:00",
+      "weekdays": [
+        "금"
       ]
     }
   }
