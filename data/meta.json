@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-09-27T13:00:00+00:00",
+  "updatedAtUtc": "2026-09-27T13:31:10+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -90,7 +90,8 @@
     "855035",
     "854122",
     "853535",
-    "854335"
+    "854335",
+    "855342"
   ],
   "titles": {
     "851689": {
@@ -901,6 +902,15 @@
       "updatedAtUtc": "2026-09-27T13:00:00+00:00",
       "weekdays": [
         "금"
+      ]
+    },
+    "855342": {
+      "titleName": "무신급 막내가 되었다",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=855342",
+      "latestCount": 433,
+      "updatedAtUtc": "2026-09-27T13:31:10+00:00",
+      "weekdays": [
+        "월"
       ]
     }
   }
