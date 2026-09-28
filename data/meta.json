@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-09-28T13:00:00+00:00",
+  "updatedAtUtc": "2026-09-28T13:16:39+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -91,7 +91,8 @@
     "854122",
     "853535",
     "854335",
-    "855342"
+    "855342",
+    "855294"
   ],
   "titles": {
     "851689": {
@@ -911,6 +912,15 @@
       "updatedAtUtc": "2026-09-28T13:00:00+00:00",
       "weekdays": [
         "월"
+      ]
+    },
+    "855294": {
+      "titleName": "표현이 서툰 여자애",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=855294",
+      "latestCount": 360,
+      "updatedAtUtc": "2026-09-28T13:16:39+00:00",
+      "weekdays": [
+        "화"
       ]
     }
   }
