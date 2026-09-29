@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-09-29T13:00:00+00:00",
+  "updatedAtUtc": "2026-09-29T13:09:04+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -92,7 +92,8 @@
     "853535",
     "854335",
     "855342",
-    "855294"
+    "855294",
+    "855153"
   ],
   "titles": {
     "851689": {
@@ -921,6 +922,15 @@
       "updatedAtUtc": "2026-09-29T13:00:00+00:00",
       "weekdays": [
         "화"
+      ]
+    },
+    "855153": {
+      "titleName": "드래곤 여친이 귀환했다",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=855153",
+      "latestCount": 77,
+      "updatedAtUtc": "2026-09-29T13:09:04+00:00",
+      "weekdays": [
+        "수"
       ]
     }
   }
