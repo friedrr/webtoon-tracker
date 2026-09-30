@@ -404,7 +404,7 @@
           </div>
         </div>
         <table>
-          <thead><tr><th>날짜</th><th>마감 관심수</th><th>일일 증가</th></tr></thead>
+          <thead><tr><th>날짜</th><th>마감 관심수</th><th>일일 증가</th><th>시간당 평균</th></tr></thead>
           <tbody id="dailyBody"></tbody>
         </table>
         <div class="pager">
@@ -914,7 +914,8 @@
   function allDeltas(){
     const out = [];
     for(let i=1;i<rows.length;i++){
-      out.push({t:rows[i].t, d:rows[i].c - rows[i-1].c});
+      // prevT ~ t 구간 동안 일어난 증가. 날짜/시간대 귀속은 구간 시작(prevT) 기준.
+      out.push({prevT:rows[i-1].t, t:rows[i].t, d:rows[i].c - rows[i-1].c});
     }
     return out;
   }
@@ -979,13 +980,15 @@
     }
 
     const slots = Array(24).fill(null);
-    let total = 0, nRec = 0;
+    let total = 0;
     for(const r of allDeltas()){
-      if(kstDateKey(r.t) !== daySel) continue;
-      const h = kstHourOf(r.t);
+      if(kstDateKey(r.prevT) !== daySel) continue;
+      const h = kstHourOf(r.prevT);
       slots[h] = (slots[h] ?? 0) + r.d;
-      total += r.d; nRec++;
+      total += r.d;
     }
+    const covered = slots.filter(v => v !== null).length;   // 실제 측정된 시간 수
+    const avgPerHour = covered > 0 ? Math.round(total / covered) : 0;
     deltaChart = new Chart($("deltaChart"), {
       type:"bar",
       data:{
@@ -1001,7 +1004,10 @@
         plugins:{
           legend:{display:false},
           tooltip:{callbacks:{
-            title:items=>`${fmtDayLabel(daySel)} ${items[0].label}`,
+            title:items=>{
+              const h = items[0].dataIndex;
+              return `${fmtDayLabel(daySel)} ${h}시 → ${(h+1)%24}시`;
+            },
             label:c=>" 증가 " + signed(c.parsed.y)
           }}
         },
@@ -1011,28 +1017,50 @@
         }
       }
     });
-    note.textContent = nRec === 0
+    note.textContent = covered === 0
       ? `${fmtDayLabel(daySel)} — 이 날짜에는 증가량 기록이 없습니다.`
-      : `${fmtDayLabel(daySel)} 총 증가 ${signed(total)} · 기록 ${nRec}회` +
-        (nRec < 24 ? " · 빈 시간대는 수집이 없었던 구간입니다" : "");
+      : `${fmtDayLabel(daySel)} 총 증가 ${signed(total)} · 시간당 평균 ${fmt(avgPerHour)}` +
+        (covered < 24
+          ? ` · ${covered}시간 측정 기준 (빈 시간대는 수집이 없었던 구간)`
+          : " · 24시간 기준");
   }
 
   // ---- 일별 기록: 페이지네이션 ----
   let pageSize = 10;
   let page = 1;
-  let dailyRows = [];   // [{date, close, diff}] 최신순
+  let dailyRows = [];   // [{date, close, diff, rate}] 최신순
 
   function buildDaily(){
-    const byDay = new Map();
-    for(const r of rows) byDay.set(kstDateKey(r.t), r.c);
-    const days = [...byDay.entries()];
+    // 날짜 목록(오름차순)
+    const dates = [...new Set(rows.map(r => kstDateKey(r.t)))].sort();
+    const latest = rows[rows.length-1];
+    const startOf = key => {
+      const [y,m,d] = key.split("-").map(Number);
+      return Date.UTC(y, m-1, d) - KST;
+    };
+
     dailyRows = [];
-    for(let i=days.length-1; i>=0; i--){
-      const [date, close] = days[i];
-      const [y,m,d] = date.split("-").map(Number);
-      const dayStart = Date.UTC(y, m-1, d) - KST;
+    for(let i=dates.length-1; i>=0; i--){
+      const date = dates[i];
+      const dayStart = startOf(date);
       const base = i>0 ? dayBaseOf(rows, dayStart) : null;   // 첫날은 기준 없음
-      dailyRows.push({date, close, diff: base ? close - base.c : null});
+      // 그날의 끝 = 익일 0시 기록(없으면 = 아직 진행 중인 날이므로 최신 기록)
+      const isLast = (i === dates.length-1);
+      const end = isLast ? latest : (dayBaseOf(rows, dayStart + 86400000) || latest);
+
+      if(!base){
+        dailyRows.push({date, close: end.c, diff: null, rate: null});
+        continue;
+      }
+      const diff = end.c - base.c;
+      const spanH = (end.t - base.t) / 3600000;
+      dailyRows.push({
+        date,
+        close: end.c,
+        diff,
+        rate: spanH > 0 ? Math.round(diff / spanH) : null,
+        spanH: Math.round(spanH),
+      });
     }
   }
 
@@ -1047,9 +1075,13 @@
     for(const r of slice){
       const tr = document.createElement("tr");
       const cls = r.diff === null ? "" : (r.diff < 0 ? "down" : "up");
+      const rateTxt = r.rate === null || r.rate === undefined
+        ? "–"
+        : fmt(r.rate) + (r.spanH && r.spanH < 24 ? ` <span style="color:var(--muted);font-size:12px">(${r.spanH}h)</span>` : "");
       tr.innerHTML = `<td>${r.date.replace(/-/g,".")}</td>` +
                      `<td>${fmt(r.close)}</td>` +
-                     `<td class="${cls}">${r.diff===null?"–":signed(r.diff)}</td>`;
+                     `<td class="${cls}">${r.diff===null?"–":signed(r.diff)}</td>` +
+                     `<td>${rateTxt}</td>`;
       tbody.appendChild(tr);
     }
     $("pageInfo").textContent = `${page} / ${totalPages}`;
