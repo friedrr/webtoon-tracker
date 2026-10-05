@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-10-05T13:00:00+00:00",
+  "updatedAtUtc": "2026-10-05T13:10:27+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -94,7 +94,8 @@
     "855342",
     "855294",
     "855153",
-    "855599"
+    "855599",
+    "854794"
   ],
   "titles": {
     "851689": {
@@ -941,6 +942,15 @@
       "updatedAtUtc": "2026-10-05T13:00:00+00:00",
       "weekdays": [
         "토"
+      ]
+    },
+    "854794": {
+      "titleName": "하울링",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=854794",
+      "latestCount": 70,
+      "updatedAtUtc": "2026-10-05T13:10:27+00:00",
+      "weekdays": [
+        "화"
       ]
     }
   }
