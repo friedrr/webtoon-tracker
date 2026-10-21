@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-10-21T01:00:00+00:00",
+  "updatedAtUtc": "2026-10-21T01:43:09+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -96,7 +96,8 @@
     "855153",
     "855599",
     "854794",
-    "856191"
+    "856191",
+    "853095"
   ],
   "titles": {
     "851689": {
@@ -961,6 +962,15 @@
       "updatedAtUtc": "2026-10-21T01:00:00+00:00",
       "weekdays": [
         "월"
+      ]
+    },
+    "853095": {
+      "titleName": "그림으로 승부",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=853095",
+      "latestCount": 38875,
+      "updatedAtUtc": "2026-10-21T01:43:09+00:00",
+      "weekdays": [
+        "목"
       ]
     }
   }
