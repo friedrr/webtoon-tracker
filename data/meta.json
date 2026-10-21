@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-10-21T13:00:00+00:00",
+  "updatedAtUtc": "2026-10-21T13:16:58+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -97,7 +97,8 @@
     "855599",
     "854794",
     "856191",
-    "853095"
+    "853095",
+    "855950"
   ],
   "titles": {
     "851689": {
@@ -969,6 +970,15 @@
       "pageUrl": "https://comic.naver.com/webtoon/list?titleId=853095",
       "latestCount": 39526,
       "updatedAtUtc": "2026-10-21T13:00:00+00:00",
+      "weekdays": [
+        "목"
+      ]
+    },
+    "855950": {
+      "titleName": "토커",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=855950",
+      "latestCount": 135,
+      "updatedAtUtc": "2026-10-21T13:16:58+00:00",
       "weekdays": [
         "목"
       ]
