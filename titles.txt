@@ -100,3 +100,4 @@ https://comic.naver.com/webtoon/list?titleId=854794
 https://comic.naver.com/webtoon/list?titleId=856191
 https://comic.naver.com/webtoon/list?titleId=853095
 https://comic.naver.com/webtoon/list?titleId=855950
+https://comic.naver.com/webtoon/list?titleId=856208
