@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-10-25T13:00:00+00:00",
+  "updatedAtUtc": "2026-10-25T13:22:40+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -99,7 +99,8 @@
     "856191",
     "853095",
     "855950",
-    "856208"
+    "856208",
+    "852615"
   ],
   "titles": {
     "851689": {
@@ -991,6 +992,15 @@
       "updatedAtUtc": "2026-10-25T13:00:00+00:00",
       "weekdays": [
         "일"
+      ]
+    },
+    "852615": {
+      "titleName": "첫사랑 트랩",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=852615",
+      "latestCount": 358,
+      "updatedAtUtc": "2026-10-25T13:22:40+00:00",
+      "weekdays": [
+        "월"
       ]
     }
   }
