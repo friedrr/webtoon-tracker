@@ -1,5 +1,5 @@
 {
-  "updatedAtUtc": "2026-10-27T14:00:00+00:00",
+  "updatedAtUtc": "2026-10-27T14:25:26+00:00",
   "titleOrder": [
     "851689",
     "852628",
@@ -100,7 +100,8 @@
     "853095",
     "855950",
     "856208",
-    "852615"
+    "852615",
+    "856213"
   ],
   "titles": {
     "851689": {
@@ -1001,6 +1002,15 @@
       "updatedAtUtc": "2026-10-27T14:00:00+00:00",
       "weekdays": [
         "월"
+      ]
+    },
+    "856213": {
+      "titleName": "초월무제",
+      "pageUrl": "https://comic.naver.com/webtoon/list?titleId=856213",
+      "latestCount": 2292,
+      "updatedAtUtc": "2026-10-27T14:25:26+00:00",
+      "weekdays": [
+        "수"
       ]
     }
   }
